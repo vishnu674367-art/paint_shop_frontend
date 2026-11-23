@@ -874,7 +874,7 @@ class _SalesPageState extends State<SalesPage> {
                 ),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: selectedMethod,
+                  initialValue: selectedMethod,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -1247,7 +1247,7 @@ class _SalesPageState extends State<SalesPage> {
                 ),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: selectedMethod,
+                  initialValue: selectedMethod,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -1643,7 +1643,7 @@ class _SalesPageState extends State<SalesPage> {
                   child: ListView.separated(
                     shrinkWrap: true,
                     itemCount: payments.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
                     itemBuilder: (ctx, i) {
                       final p = payments[i];
                       final pDate =
