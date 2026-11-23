@@ -822,7 +822,7 @@ class _SalesPageState extends State<SalesPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: sidebarBlue.withOpacity(0.1),
+                  color: sidebarBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -915,7 +915,7 @@ class _SalesPageState extends State<SalesPage> {
                 ),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: selectedStatus,
+                  initialValue: selectedStatus,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -1004,7 +1004,9 @@ class _SalesPageState extends State<SalesPage> {
                         if (mounted) {
                           AppToast.show(
                             context,
-                            'Invoice updated successfully',
+                            message: 'Invoice updated successfully',
+                            title: 'Success',
+                            type: ToastType.success,
                           );
                           _loadSales();
                         }
@@ -1013,8 +1015,9 @@ class _SalesPageState extends State<SalesPage> {
                         if (mounted) {
                           AppToast.show(
                             context,
-                            'Update failed: $e',
-                            isError: true,
+                            message: 'Update failed: $e',
+                            title: 'Error',
+                            type: ToastType.error,
                           );
                         }
                       }
@@ -1078,7 +1081,7 @@ class _SalesPageState extends State<SalesPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: primaryGreen.withOpacity(0.12),
+                  color: primaryGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -1361,10 +1364,10 @@ class _SalesPageState extends State<SalesPage> {
                       final enteredAmt =
                           double.tryParse(amtCtrl.text.trim()) ?? 0;
                       if (enteredAmt <= 0) {
-                        AppToast.show(
+                        AppToast.showError(
                           context,
-                          'Please enter a valid payment amount',
-                          isError: true,
+                          title: 'Error',
+                          message: 'Please enter a valid payment amount',
                         );
                         return;
                       }
@@ -1381,22 +1384,21 @@ class _SalesPageState extends State<SalesPage> {
                         );
                         if (ctx.mounted) Navigator.pop(ctx);
                         if (mounted) {
-                          AppToast.show(
+                          AppToast.showSuccess(
                             context,
-                            'Payment of ₹${enteredAmt.toStringAsFixed(2)} recorded successfully',
-                            type: null,
-                            title: '',
-                            message: '',
+                            title: 'Success',
+                            message:
+                                'Payment of ₹${enteredAmt.toStringAsFixed(2)} recorded successfully',
                           );
                           _loadSales();
                         }
                       } catch (e) {
                         setDlgState(() => isSaving = false);
                         if (mounted) {
-                          AppToast.show(
+                          AppToast.showError(
                             context,
-                            'Payment failed: $e',
-                            isError: true,
+                            title: 'Error',
+                            message: 'Payment failed: $e',
                           );
                         }
                       }
@@ -1835,9 +1837,10 @@ class _SalesPageState extends State<SalesPage> {
         '${isA4 ? 'TaxInvoice' : 'Slip'}_${invNo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
     await downloadReceiptSlip(fileName: safeFileName, htmlContent: html);
     if (mounted) {
-      AppToast.show(
+      AppToast.showSuccess(
         context,
-        isA4
+        title: 'Success',
+        message: isA4
             ? 'A4 Tax Invoice ready for download / print'
             : 'Thermal Invoice Slip ready',
       );
@@ -2025,7 +2028,7 @@ class _SalesPageState extends State<SalesPage> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFD97706).withOpacity(0.12),
+                  color: const Color(0xFFD97706).withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
@@ -2106,7 +2109,7 @@ class _SalesPageState extends State<SalesPage> {
                 ),
                 const SizedBox(height: 6),
                 DropdownButtonFormField<String>(
-                  value: selectedReason,
+                  initialValue: selectedReason,
                   decoration: InputDecoration(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
@@ -2182,7 +2185,7 @@ class _SalesPageState extends State<SalesPage> {
                   : () async {
                       setDlgState(() => isProcessing = true);
                       final reason = customReasonCtrl.text.trim().isNotEmpty
-                          ? '${selectedReason} - ${customReasonCtrl.text.trim()}'
+                          ? '$selectedReason - ${customReasonCtrl.text.trim()}'
                           : selectedReason;
                       try {
                         await _api.post('/sales/${s['id']}/return', {
@@ -2190,19 +2193,20 @@ class _SalesPageState extends State<SalesPage> {
                         });
                         if (ctx.mounted) Navigator.pop(ctx);
                         if (mounted) {
-                          AppToast.show(
+                          AppToast.showSuccess(
                             context,
-                            'Sales return processed & inventory stock restored',
+                            title: 'Success',
+                            message: 'Sales return processed & inventory stock restored',
                           );
                           _loadSales();
                         }
                       } catch (e) {
                         setDlgState(() => isProcessing = false);
                         if (mounted) {
-                          AppToast.show(
+                          AppToast.showError(
                             context,
-                            'Return failed: $e',
-                            isError: true,
+                            title: 'Error',
+                            message: 'Return failed: $e',
                           );
                         }
                       }
@@ -2386,19 +2390,20 @@ class _SalesPageState extends State<SalesPage> {
                         await _api.post('/sales/${s['id']}/cancel', {});
                         if (ctx.mounted) Navigator.pop(ctx);
                         if (mounted) {
-                          AppToast.show(
+                          AppToast.showSuccess(
                             context,
-                            'Invoice cancelled & stock restored',
+                            title: 'Success',
+                            message: 'Invoice cancelled & stock restored',
                           );
                           _loadSales();
                         }
                       } catch (e) {
                         setDlgState(() => isCancelling = false);
                         if (mounted) {
-                          AppToast.show(
+                          AppToast.showError(
                             context,
-                            'Cancel failed: $e',
-                            isError: true,
+                            title: 'Error',
+                            message: 'Cancel failed: $e',
                           );
                         }
                       }
