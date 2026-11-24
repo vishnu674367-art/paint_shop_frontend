@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
@@ -10,21 +11,24 @@ class ApiService {
     if (customBaseUrl != null && customBaseUrl.isNotEmpty) {
       baseUrl = customBaseUrl;
     } else if (kIsWeb) {
-      baseUrl = 'http://localhost:5001/api';
+      baseUrl = 'https://paint-shop-backend-52ro.onrender.com/api';
     } else if (defaultTargetPlatform == TargetPlatform.android) {
-      baseUrl = 'http://10.0.2.2:5001/api';
+      baseUrl = 'https://paint-shop-backend-52ro.onrender.com/api';
     } else {
-      baseUrl = 'http://localhost:5001/api';
+      baseUrl = 'https://paint-shop-backend-52ro.onrender.com/api';
     }
   }
 
   Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (token.isNotEmpty) 'Authorization': 'Bearer $token',
-      };
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    if (token.isNotEmpty) 'Authorization': 'Bearer $token',
+  };
 
-  Future<dynamic> get(String endpoint, {Map<String, String>? queryParams}) async {
+  Future<dynamic> get(
+    String endpoint, {
+    Map<String, String>? queryParams,
+  }) async {
     try {
       var uri = Uri.parse('$baseUrl$endpoint');
       if (queryParams != null && queryParams.isNotEmpty) {
@@ -34,6 +38,9 @@ class ApiService {
       final response = await http
           .get(uri, headers: _headers)
           .timeout(const Duration(seconds: 20));
+
+      debugPrint('GET $uri - Status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
 
       return _handleResponse(response);
     } catch (e) {
@@ -52,6 +59,11 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 20));
 
+      debugPrint(
+        'POST $uri - Body: ${jsonEncode(body)} - Status: ${response.statusCode}',
+      );
+      debugPrint('Response: ${response.body}');
+
       return _handleResponse(response);
     } catch (e) {
       throw Exception('Network or server error: $e');
@@ -69,6 +81,11 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 20));
 
+      debugPrint(
+        'PUT $uri - Body: ${jsonEncode(body)} - Status: ${response.statusCode}',
+      );
+      debugPrint('Response: ${response.body}');
+
       return _handleResponse(response);
     } catch (e) {
       throw Exception('Network or server error: $e');
@@ -81,6 +98,9 @@ class ApiService {
       final response = await http
           .delete(uri, headers: _headers)
           .timeout(const Duration(seconds: 20));
+
+      debugPrint('DELETE $uri - Status: ${response.statusCode}');
+      debugPrint('Response: ${response.body}');
 
       return _handleResponse(response);
     } catch (e) {

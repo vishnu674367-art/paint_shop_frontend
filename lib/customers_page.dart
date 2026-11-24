@@ -469,11 +469,31 @@ class _CustomersPageState extends State<CustomersPage> {
                               ? null
                               : () async {
                                   final name = nameCtrl.text.trim();
-                                  if (name.isEmpty) {
+                                  if (name.isEmpty || name.length < 2) {
                                     AppToast.showWarning(
                                       context,
-                                      title: 'Customer Name Required',
-                                      message: 'Please enter a name for the customer.',
+                                      title: 'Invalid Name',
+                                      message: 'Please enter a valid customer name.',
+                                    );
+                                    return;
+                                  }
+
+                                  final phone = phoneCtrl.text.trim();
+                                  if (phone.isNotEmpty && !RegExp(r"^\d{10}$").hasMatch(phone)) {
+                                    AppToast.showWarning(
+                                      context,
+                                      title: 'Invalid Phone Number',
+                                      message: 'Please enter a valid 10-digit mobile number.',
+                                    );
+                                    return;
+                                  }
+
+                                  final email = emailCtrl.text.trim();
+                                  if (email.isNotEmpty && !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(email)) {
+                                    AppToast.showWarning(
+                                      context,
+                                      title: 'Invalid Email',
+                                      message: 'Please enter a valid email address.',
                                     );
                                     return;
                                   }

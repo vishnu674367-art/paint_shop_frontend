@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
 import 'app_toast.dart';
 import 'responsive_ui.dart';
 import 'api_service.dart';
@@ -26,16 +28,66 @@ class _UsersPageState extends State<UsersPage> {
 
   // 10 Core Application Modules
   static const List<Map<String, dynamic>> allModules = [
-    {'index': 0, 'id': 'dashboard', 'name': 'Dashboard', 'icon': Icons.dashboard_rounded},
-    {'index': 1, 'id': 'billing', 'name': 'Billing (POS)', 'icon': Icons.receipt_long_rounded},
-    {'index': 2, 'id': 'sales', 'name': 'Sales & Invoices', 'icon': Icons.bar_chart_rounded},
-    {'index': 3, 'id': 'purchase', 'name': 'Purchase (Stock In)', 'icon': Icons.shopping_cart_rounded},
-    {'index': 4, 'id': 'products', 'name': 'Products & Stock', 'icon': Icons.inventory_2_rounded},
-    {'index': 5, 'id': 'customers', 'name': 'Customers', 'icon': Icons.people_alt_rounded},
-    {'index': 6, 'id': 'suppliers', 'name': 'Suppliers', 'icon': Icons.local_shipping_rounded},
-    {'index': 7, 'id': 'reports', 'name': 'Reports & Analytics', 'icon': Icons.analytics_rounded},
-    {'index': 8, 'id': 'users', 'name': 'Users & Staff', 'icon': Icons.group_rounded},
-    {'index': 9, 'id': 'settings', 'name': 'Settings', 'icon': Icons.settings_rounded},
+    {
+      'index': 0,
+      'id': 'dashboard',
+      'name': 'Dashboard',
+      'icon': Icons.dashboard_rounded,
+    },
+    {
+      'index': 1,
+      'id': 'billing',
+      'name': 'Billing (POS)',
+      'icon': Icons.receipt_long_rounded,
+    },
+    {
+      'index': 2,
+      'id': 'sales',
+      'name': 'Sales & Invoices',
+      'icon': Icons.bar_chart_rounded,
+    },
+    {
+      'index': 3,
+      'id': 'purchase',
+      'name': 'Purchase (Stock In)',
+      'icon': Icons.shopping_cart_rounded,
+    },
+    {
+      'index': 4,
+      'id': 'products',
+      'name': 'Products & Stock',
+      'icon': Icons.inventory_2_rounded,
+    },
+    {
+      'index': 5,
+      'id': 'customers',
+      'name': 'Customers',
+      'icon': Icons.people_alt_rounded,
+    },
+    {
+      'index': 6,
+      'id': 'suppliers',
+      'name': 'Suppliers',
+      'icon': Icons.local_shipping_rounded,
+    },
+    {
+      'index': 7,
+      'id': 'reports',
+      'name': 'Reports & Analytics',
+      'icon': Icons.analytics_rounded,
+    },
+    {
+      'index': 8,
+      'id': 'users',
+      'name': 'Users & Staff',
+      'icon': Icons.group_rounded,
+    },
+    {
+      'index': 9,
+      'id': 'settings',
+      'name': 'Settings',
+      'icon': Icons.settings_rounded,
+    },
   ];
 
   static List<int> getModuleIndicesForRole(String? roleStr) {
@@ -118,7 +170,8 @@ class _UsersPageState extends State<UsersPage> {
       'label': 'Store Manager',
       'shortLabel': 'Manager',
       'tag': 'Store Ops',
-      'description': 'Store operations, inventory, sales & reports (No Users or Settings)',
+      'description':
+          'Store operations, inventory, sales & reports (No Users or Settings)',
       'color': Color(0xFF2563EB),
       'bgColor': Color(0xFFEFF6FF),
       'borderColor': Color(0xFFBFDBFE),
@@ -140,7 +193,8 @@ class _UsersPageState extends State<UsersPage> {
       'label': 'Stock / Inventory Manager',
       'shortLabel': 'Stock Mgr',
       'tag': 'Inventory',
-      'description': 'Products & paint catalogue, stock adjustments & supplier purchases',
+      'description':
+          'Products & paint catalogue, stock adjustments & supplier purchases',
       'color': Color(0xFFD97706),
       'bgColor': Color(0xFFFEF3C7),
       'borderColor': Color(0xFFFDE68A),
@@ -151,7 +205,8 @@ class _UsersPageState extends State<UsersPage> {
       'label': 'Accountant',
       'shortLabel': 'Accountant',
       'tag': 'Audit & Tax',
-      'description': 'Financial ledgers, sales audits, purchase records & tax reports',
+      'description':
+          'Financial ledgers, sales audits, purchase records & tax reports',
       'color': Color(0xFF0D9488),
       'bgColor': Color(0xFFCCFBF1),
       'borderColor': Color(0xFF99F6E4),
@@ -173,7 +228,8 @@ class _UsersPageState extends State<UsersPage> {
       'label': 'General Staff',
       'shortLabel': 'Staff',
       'tag': 'Store Staff',
-      'description': 'Counter billing assistance, product lookup & customer support',
+      'description':
+          'Counter billing assistance, product lookup & customer support',
       'color': Color(0xFF475569),
       'bgColor': Color(0xFFF1F5F9),
       'borderColor': Color(0xFFE2E8F0),
@@ -196,7 +252,10 @@ class _UsersPageState extends State<UsersPage> {
       },
     );
 
-    final displayLabel = (roleInfo['shortLabel'] ?? roleInfo['label'] ?? roleKey).toString().toUpperCase();
+    final displayLabel =
+        (roleInfo['shortLabel'] ?? roleInfo['label'] ?? roleKey)
+            .toString()
+            .toUpperCase();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
@@ -209,7 +268,11 @@ class _UsersPageState extends State<UsersPage> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Icon(roleInfo['icon'] as IconData, size: 12, color: roleInfo['color'] as Color),
+          Icon(
+            roleInfo['icon'] as IconData,
+            size: 12,
+            color: roleInfo['color'] as Color,
+          ),
           const SizedBox(width: 5),
           Flexible(
             child: Text(
@@ -278,14 +341,32 @@ class _UsersPageState extends State<UsersPage> {
     }).toList();
   }
 
-  int get _adminCount => _users.where((u) => ['admin', 'manager'].contains((u['role'] ?? '').toString().toLowerCase())).length;
-  int get _staffCount => _users.where((u) => !['admin', 'manager'].contains((u['role'] ?? '').toString().toLowerCase())).length;
+  int get _adminCount => _users
+      .where(
+        (u) => [
+          'admin',
+          'manager',
+        ].contains((u['role'] ?? '').toString().toLowerCase()),
+      )
+      .length;
+  int get _staffCount => _users
+      .where(
+        (u) => ![
+          'admin',
+          'manager',
+        ].contains((u['role'] ?? '').toString().toLowerCase()),
+      )
+      .length;
 
   // --- ADD / EDIT USER & PERMISSIONS DIALOG (ULTRA-PREMIUM TWO-PANEL RBAC SUITE) ---
   void _showUserDialog({Map<String, dynamic>? user, bool accessOnly = false}) {
     final isEditing = user != null;
-    final nameCtrl = TextEditingController(text: user?['name']?.toString() ?? '');
-    final emailCtrl = TextEditingController(text: user?['email']?.toString() ?? '');
+    final nameCtrl = TextEditingController(
+      text: user?['name']?.toString() ?? '',
+    );
+    final emailCtrl = TextEditingController(
+      text: user?['email']?.toString() ?? '',
+    );
     final passwordCtrl = TextEditingController();
     String role = (user?['role']?.toString() ?? 'staff').toLowerCase().trim();
     bool obscurePassword = true;
@@ -310,12 +391,12 @@ class _UsersPageState extends State<UsersPage> {
 
           return Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 24,
+            ),
             child: Container(
-              constraints: const BoxConstraints(
-                maxWidth: 980,
-                maxHeight: 740,
-              ),
+              constraints: const BoxConstraints(maxWidth: 980, maxHeight: 740),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
@@ -333,9 +414,14 @@ class _UsersPageState extends State<UsersPage> {
                 children: [
                   // 1. MODAL HEADER
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 18,
+                    ),
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: Color(0xFFF1F5F9))),
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFF1F5F9)),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -351,13 +437,18 @@ class _UsersPageState extends State<UsersPage> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF1E40AF).withValues(alpha: 0.25),
+                                color: const Color(0xFF1E40AF)
+                                    .withValues(alpha: 0.25),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3),
                               ),
                             ],
                           ),
-                          child: const Icon(Icons.shield_rounded, color: Colors.white, size: 24),
+                          child: const Icon(
+                            Icons.shield_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
                         ),
                         const SizedBox(width: 14),
                         Expanded(
@@ -366,7 +457,9 @@ class _UsersPageState extends State<UsersPage> {
                             children: [
                               Text(
                                 isEditing
-                                    ? (accessOnly ? 'Manage User Role & Custom Access' : 'Edit User Account & Custom Permissions')
+                                    ? (accessOnly
+                                          ? 'Manage User Role & Custom Access'
+                                          : 'Edit User Account & Custom Permissions')
                                     : 'Add New User & Assign Custom Access',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w800,
@@ -380,22 +473,34 @@ class _UsersPageState extends State<UsersPage> {
                                 isEditing
                                     ? 'Personally check/uncheck module permissions for ${user['name'] ?? 'User'}.'
                                     : 'Create staff credentials and choose exactly which modules this user can access.',
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF64748B),
+                                ),
                               ),
                             ],
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: roleBg,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: roleInfo['borderColor'] as Color),
+                            border: Border.all(
+                              color: roleInfo['borderColor'] as Color,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(roleInfo['icon'] as IconData, size: 14, color: roleColor),
+                              Icon(
+                                roleInfo['icon'] as IconData,
+                                size: 14,
+                                color: roleColor,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 (roleInfo['label'] as String).toUpperCase(),
@@ -411,7 +516,11 @@ class _UsersPageState extends State<UsersPage> {
                         ),
                         const SizedBox(width: 12),
                         IconButton(
-                          icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            size: 20,
+                            color: Color(0xFF94A3B8),
+                          ),
                           onPressed: () => Navigator.pop(dialogCtx),
                         ),
                       ],
@@ -435,14 +544,22 @@ class _UsersPageState extends State<UsersPage> {
                                 child: Container(
                                   padding: const EdgeInsets.all(22),
                                   decoration: const BoxDecoration(
-                                    border: Border(right: BorderSide(color: Color(0xFFF1F5F9))),
+                                    border: Border(
+                                      right: BorderSide(
+                                        color: Color(0xFFF1F5F9),
+                                      ),
+                                    ),
                                   ),
                                   child: SingleChildScrollView(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
                                       children: [
                                         if (!accessOnly) ...[
-                                          _buildSectionTitle('1. Staff Credentials', Icons.badge_rounded),
+                                          _buildSectionTitle(
+                                            '1. Staff Credentials',
+                                            Icons.badge_rounded,
+                                          ),
                                           const SizedBox(height: 12),
                                           _buildCustomField(
                                             controller: nameCtrl,
@@ -456,32 +573,47 @@ class _UsersPageState extends State<UsersPage> {
                                             label: 'Email Address (Used for Login) *',
                                             hint: 'e.g. staff@paintshop.com',
                                             icon: Icons.alternate_email_rounded,
-                                            keyboardType: TextInputType.emailAddress,
+                                            keyboardType:
+                                                TextInputType.emailAddress,
                                           ),
                                           const SizedBox(height: 12),
                                           _buildCustomField(
                                             controller: passwordCtrl,
-                                            label: isEditing ? 'Reset Password (optional)' : 'Login Password *',
+                                            label: isEditing
+                                                ? 'Reset Password (optional)'
+                                                : 'Login Password *',
                                             hint: '••••••••',
                                             icon: Icons.lock_outline_rounded,
                                             obscureText: obscurePassword,
                                             suffixIcon: IconButton(
                                               icon: Icon(
-                                                obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                                                obscurePassword
+                                                    ? Icons
+                                                          .visibility_off_rounded
+                                                    : Icons.visibility_rounded,
                                                 size: 18,
                                                 color: const Color(0xFF94A3B8),
                                               ),
-                                              onPressed: () => setDialogState(() => obscurePassword = !obscurePassword),
+                                              onPressed: () => setDialogState(
+                                                () => obscurePassword =
+                                                    !obscurePassword,
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(height: 20),
                                         ],
 
-                                        _buildSectionTitle('2. System Role Preset', Icons.security_rounded),
+                                        _buildSectionTitle(
+                                          '2. System Role Preset',
+                                          Icons.security_rounded,
+                                        ),
                                         const SizedBox(height: 6),
                                         const Text(
                                           'Select a preset role below to auto-fill permissions, or customize each module manually on the right:',
-                                          style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Color(0xFF64748B),
+                                          ),
                                         ),
                                         const SizedBox(height: 10),
 
@@ -492,21 +624,42 @@ class _UsersPageState extends State<UsersPage> {
                                           final rBg = r['bgColor'] as Color;
 
                                           return Padding(
-                                            padding: const EdgeInsets.only(bottom: 7),
+                                            padding: const EdgeInsets.only(
+                                              bottom: 7,
+                                            ),
                                             child: InkWell(
                                               onTap: () => setDialogState(() {
                                                 role = r['id'] as String;
-                                                selectedModuleIndices = getModuleIndicesForRole(role).toSet();
+                                                selectedModuleIndices =
+                                                    getModuleIndicesForRole(
+                                                      role,
+                                                    ).toSet();
                                               }),
-                                              borderRadius: BorderRadius.circular(10),
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
                                               child: AnimatedContainer(
-                                                duration: const Duration(milliseconds: 180),
-                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                                                duration: const Duration(
+                                                  milliseconds: 180,
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 9,
+                                                    ),
                                                 decoration: BoxDecoration(
-                                                  color: isSelected ? rBg.withValues(alpha: 0.4) : const Color(0xFFF8FAFC),
-                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: isSelected
+                                                      ? rBg.withValues(
+                                                          alpha: 0.4,
+                                                        )
+                                                      : const Color(0xFFF8FAFC),
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
                                                   border: Border.all(
-                                                    color: isSelected ? rColor : const Color(0xFFE2E8F0),
+                                                    color: isSelected
+                                                        ? rColor
+                                                        : const Color(
+                                                            0xFFE2E8F0,
+                                                          ),
                                                     width: isSelected ? 1.6 : 1,
                                                   ),
                                                 ),
@@ -516,51 +669,113 @@ class _UsersPageState extends State<UsersPage> {
                                                       width: 32,
                                                       height: 32,
                                                       decoration: BoxDecoration(
-                                                        color: isSelected ? rColor : Colors.white,
-                                                        borderRadius: BorderRadius.circular(8),
-                                                        border: isSelected ? null : Border.all(color: const Color(0xFFE2E8F0)),
+                                                        color: isSelected
+                                                            ? rColor
+                                                            : Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              8,
+                                                            ),
+                                                        border: isSelected
+                                                            ? null
+                                                            : Border.all(
+                                                                color:
+                                                                    const Color(
+                                                                      0xFFE2E8F0,
+                                                                    ),
+                                                              ),
                                                       ),
                                                       child: Icon(
                                                         r['icon'] as IconData,
                                                         size: 16,
-                                                        color: isSelected ? Colors.white : rColor,
+                                                        color: isSelected
+                                                            ? Colors.white
+                                                            : rColor,
                                                       ),
                                                     ),
                                                     const SizedBox(width: 10),
                                                     Expanded(
                                                       child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
                                                         children: [
                                                           Row(
                                                             children: [
                                                               Text(
-                                                                r['label'] as String,
+                                                                r['label']
+                                                                    as String,
                                                                 style: TextStyle(
-                                                                  fontWeight: FontWeight.w700,
-                                                                  fontSize: 12.5,
-                                                                  color: isSelected ? const Color(0xFF0F172A) : const Color(0xFF334155),
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                  fontSize:
+                                                                      12.5,
+                                                                  color:
+                                                                      isSelected
+                                                                      ? const Color(
+                                                                          0xFF0F172A,
+                                                                        )
+                                                                      : const Color(
+                                                                          0xFF334155,
+                                                                        ),
                                                                 ),
                                                               ),
-                                                              const SizedBox(width: 6),
+                                                              const SizedBox(
+                                                                width: 6,
+                                                              ),
                                                               Container(
-                                                                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                                                padding:
+                                                                    const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          5,
+                                                                      vertical:
+                                                                          1,
+                                                                    ),
                                                                 decoration: BoxDecoration(
                                                                   color: rBg,
-                                                                  borderRadius: BorderRadius.circular(4),
-                                                                  border: Border.all(color: r['borderColor'] as Color),
+                                                                  borderRadius:
+                                                                      BorderRadius.circular(
+                                                                        4,
+                                                                      ),
+                                                                  border: Border.all(
+                                                                    color:
+                                                                        r['borderColor']
+                                                                            as Color,
+                                                                  ),
                                                                 ),
                                                                 child: Text(
-                                                                  (r['tag'] as String).toUpperCase(),
-                                                                  style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: rColor),
+                                                                  (r['tag']
+                                                                          as String)
+                                                                      .toUpperCase(),
+                                                                  style: TextStyle(
+                                                                    fontSize:
+                                                                        8.5,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w800,
+                                                                    color:
+                                                                        rColor,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ],
                                                           ),
                                                           Text(
-                                                            r['description'] as String,
+                                                            r['description']
+                                                                as String,
                                                             maxLines: 1,
-                                                            overflow: TextOverflow.ellipsis,
-                                                            style: const TextStyle(fontSize: 10.5, color: Color(0xFF64748B)),
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style:
+                                                                const TextStyle(
+                                                                  fontSize:
+                                                                      10.5,
+                                                                  color: Color(
+                                                                    0xFF64748B,
+                                                                  ),
+                                                                ),
                                                           ),
                                                         ],
                                                       ),
@@ -570,14 +785,26 @@ class _UsersPageState extends State<UsersPage> {
                                                       height: 18,
                                                       decoration: BoxDecoration(
                                                         shape: BoxShape.circle,
-                                                        color: isSelected ? rColor : Colors.transparent,
+                                                        color: isSelected
+                                                            ? rColor
+                                                            : Colors
+                                                                  .transparent,
                                                         border: Border.all(
-                                                          color: isSelected ? rColor : const Color(0xFFCBD5E1),
+                                                          color: isSelected
+                                                              ? rColor
+                                                              : const Color(
+                                                                  0xFFCBD5E1,
+                                                                ),
                                                           width: 1.5,
                                                         ),
                                                       ),
                                                       child: isSelected
-                                                          ? const Icon(Icons.check, size: 12, color: Colors.white)
+                                                          ? const Icon(
+                                                              Icons.check,
+                                                              size: 12,
+                                                              color:
+                                                                  Colors.white,
+                                                            )
                                                           : null,
                                                     ),
                                                   ],
@@ -599,67 +826,127 @@ class _UsersPageState extends State<UsersPage> {
                                   padding: const EdgeInsets.all(22),
                                   color: const Color(0xFFF8FAFC),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       // Module Access Header & Quick Presets
                                       Container(
                                         padding: const EdgeInsets.all(14),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFE2E8F0),
+                                          ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.02),
+                                              color: Colors.black.withValues(
+                                                alpha: 0.02,
+                                              ),
                                               blurRadius: 6,
                                               offset: const Offset(0, 2),
                                             ),
                                           ],
                                         ),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
                                               children: [
                                                 Expanded(
                                                   child: Row(
                                                     children: [
-                                                      const Icon(Icons.tune_rounded, size: 17, color: Color(0xFF1E40AF)),
+                                                      const Icon(
+                                                        Icons.tune_rounded,
+                                                        size: 17,
+                                                        color: Color(
+                                                          0xFF1E40AF,
+                                                        ),
+                                                      ),
                                                       const SizedBox(width: 6),
                                                       const Flexible(
                                                         child: Text(
                                                           'Module Permissions',
                                                           style: TextStyle(
-                                                            fontWeight: FontWeight.w800,
+                                                            fontWeight:
+                                                                FontWeight.w800,
                                                             fontSize: 13,
-                                                            color: Color(0xFF0F172A),
+                                                            color: Color(
+                                                              0xFF0F172A,
+                                                            ),
                                                           ),
-                                                          overflow: TextOverflow.ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                         ),
                                                       ),
                                                       const SizedBox(width: 6),
                                                       Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 6,
+                                                              vertical: 2,
+                                                            ),
                                                         decoration: BoxDecoration(
-                                                          color: allowedCount == 10
-                                                              ? const Color(0xFFDCFCE7)
-                                                              : (allowedCount == 0 ? const Color(0xFFFEE2E2) : const Color(0xFFEFF6FF)),
-                                                          borderRadius: BorderRadius.circular(6),
+                                                          color:
+                                                              allowedCount == 10
+                                                              ? const Color(
+                                                                  0xFFDCFCE7,
+                                                                )
+                                                              : (allowedCount ==
+                                                                        0
+                                                                    ? const Color(
+                                                                        0xFFFEE2E2,
+                                                                      )
+                                                                    : const Color(
+                                                                        0xFFEFF6FF,
+                                                                      )),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
                                                           border: Border.all(
-                                                            color: allowedCount == 10
-                                                                ? const Color(0xFF86EFAC)
-                                                                : (allowedCount == 0 ? const Color(0xFFFCA5A5) : const Color(0xFFBFDBFE)),
+                                                            color:
+                                                                allowedCount ==
+                                                                    10
+                                                                ? const Color(
+                                                                    0xFF86EFAC,
+                                                                  )
+                                                                : (allowedCount ==
+                                                                          0
+                                                                      ? const Color(
+                                                                          0xFFFCA5A5,
+                                                                        )
+                                                                      : const Color(
+                                                                          0xFFBFDBFE,
+                                                                        )),
                                                           ),
                                                         ),
                                                         child: Text(
                                                           '$allowedCount / 10 Allowed',
                                                           style: TextStyle(
                                                             fontSize: 10,
-                                                            fontWeight: FontWeight.w800,
-                                                            color: allowedCount == 10
-                                                                ? const Color(0xFF15803D)
-                                                                : (allowedCount == 0 ? const Color(0xFFB91C1C) : const Color(0xFF1D4ED8)),
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color:
+                                                                allowedCount ==
+                                                                    10
+                                                                ? const Color(
+                                                                    0xFF15803D,
+                                                                  )
+                                                                : (allowedCount ==
+                                                                          0
+                                                                      ? const Color(
+                                                                          0xFFB91C1C,
+                                                                        )
+                                                                      : const Color(
+                                                                          0xFF1D4ED8,
+                                                                        )),
                                                           ),
                                                         ),
                                                       ),
@@ -669,42 +956,95 @@ class _UsersPageState extends State<UsersPage> {
                                                 const SizedBox(width: 8),
                                                 // Quick Selection Chips
                                                 Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     InkWell(
                                                       onTap: () => setDialogState(() {
-                                                        selectedModuleIndices = List.generate(allModules.length, (i) => i).toSet();
+                                                        selectedModuleIndices =
+                                                            List.generate(
+                                                              allModules.length,
+                                                              (i) => i,
+                                                            ).toSet();
                                                       }),
-                                                      borderRadius: BorderRadius.circular(6),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
                                                       child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 7,
+                                                              vertical: 3.5,
+                                                            ),
                                                         decoration: BoxDecoration(
-                                                          color: const Color(0xFFEFF6FF),
-                                                          borderRadius: BorderRadius.circular(6),
-                                                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                                                          color: const Color(
+                                                            0xFFEFF6FF,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: const Color(
+                                                              0xFFBFDBFE,
+                                                            ),
+                                                          ),
                                                         ),
                                                         child: const Text(
                                                           'Select All',
-                                                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8)),
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Color(
+                                                              0xFF1D4ED8,
+                                                            ),
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
                                                     const SizedBox(width: 5),
                                                     InkWell(
-                                                      onTap: () => setDialogState(() {
-                                                        selectedModuleIndices.clear();
-                                                      }),
-                                                      borderRadius: BorderRadius.circular(6),
+                                                      onTap: () =>
+                                                          setDialogState(() {
+                                                            selectedModuleIndices
+                                                                .clear();
+                                                          }),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
                                                       child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 7,
+                                                              vertical: 3.5,
+                                                            ),
                                                         decoration: BoxDecoration(
-                                                          color: const Color(0xFFF1F5F9),
-                                                          borderRadius: BorderRadius.circular(6),
-                                                          border: Border.all(color: const Color(0xFFCBD5E1)),
+                                                          color: const Color(
+                                                            0xFFF1F5F9,
+                                                          ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: const Color(
+                                                              0xFFCBD5E1,
+                                                            ),
+                                                          ),
                                                         ),
                                                         child: const Text(
                                                           'Clear All',
-                                                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF475569)),
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Color(
+                                                              0xFF475569,
+                                                            ),
+                                                          ),
                                                         ),
                                                       ),
                                                     ),
@@ -715,7 +1055,10 @@ class _UsersPageState extends State<UsersPage> {
                                             const SizedBox(height: 4),
                                             const Text(
                                               'Click on any module card below to personally check/uncheck access for this user.',
-                                              style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                color: Color(0xFF64748B),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -726,16 +1069,20 @@ class _UsersPageState extends State<UsersPage> {
                                       Expanded(
                                         child: GridView.builder(
                                           itemCount: allModules.length,
-                                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                                            crossAxisCount: 2,
-                                            crossAxisSpacing: 10,
-                                            mainAxisSpacing: 10,
-                                            childAspectRatio: 2.8,
-                                          ),
+                                          gridDelegate:
+                                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                                crossAxisCount: 2,
+                                                crossAxisSpacing: 10,
+                                                mainAxisSpacing: 10,
+                                                childAspectRatio: 2.8,
+                                              ),
                                           itemBuilder: (context, index) {
                                             final mod = allModules[index];
                                             final idx = mod['index'] as int;
-                                            final isAllowed = selectedModuleIndices.contains(idx);
+                                            final isAllowed =
+                                                selectedModuleIndices.contains(
+                                                  idx,
+                                                );
 
                                             return Material(
                                               color: Colors.transparent,
@@ -743,29 +1090,63 @@ class _UsersPageState extends State<UsersPage> {
                                                 onTap: () {
                                                   setDialogState(() {
                                                     if (isAllowed) {
-                                                      selectedModuleIndices.remove(idx);
+                                                      selectedModuleIndices
+                                                          .remove(idx);
                                                     } else {
-                                                      selectedModuleIndices.add(idx);
+                                                      selectedModuleIndices.add(
+                                                        idx,
+                                                      );
                                                     }
                                                   });
                                                 },
-                                                borderRadius: BorderRadius.circular(10),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
                                                 child: AnimatedContainer(
-                                                  duration: const Duration(milliseconds: 180),
-                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                  duration: const Duration(
+                                                    milliseconds: 180,
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 10,
+                                                        vertical: 8,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: isAllowed ? Colors.white : const Color(0xFFF8FAFC),
-                                                    borderRadius: BorderRadius.circular(10),
+                                                    color: isAllowed
+                                                        ? Colors.white
+                                                        : const Color(
+                                                            0xFFF8FAFC,
+                                                          ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          10,
+                                                        ),
                                                     border: Border.all(
-                                                      color: isAllowed ? const Color(0xFF10B981) : const Color(0xFFE2E8F0),
-                                                      width: isAllowed ? 1.6 : 1,
+                                                      color: isAllowed
+                                                          ? const Color(
+                                                              0xFF10B981,
+                                                            )
+                                                          : const Color(
+                                                              0xFFE2E8F0,
+                                                            ),
+                                                      width: isAllowed
+                                                          ? 1.6
+                                                          : 1,
                                                     ),
                                                     boxShadow: isAllowed
                                                         ? [
                                                             BoxShadow(
-                                                              color: const Color(0xFF10B981).withValues(alpha: 0.10),
+                                                              color:
+                                                                  const Color(
+                                                                    0xFF10B981,
+                                                                  ).withValues(
+                                                                    alpha: 0.10,
+                                                                  ),
                                                               blurRadius: 6,
-                                                              offset: const Offset(0, 2),
+                                                              offset:
+                                                                  const Offset(
+                                                                    0,
+                                                                    2,
+                                                                  ),
                                                             ),
                                                           ]
                                                         : null,
@@ -777,37 +1158,81 @@ class _UsersPageState extends State<UsersPage> {
                                                         width: 28,
                                                         height: 28,
                                                         decoration: BoxDecoration(
-                                                          color: isAllowed ? const Color(0xFFECFDF5) : const Color(0xFFE2E8F0),
-                                                          borderRadius: BorderRadius.circular(6),
+                                                          color: isAllowed
+                                                              ? const Color(
+                                                                  0xFFECFDF5,
+                                                                )
+                                                              : const Color(
+                                                                  0xFFE2E8F0,
+                                                                ),
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                6,
+                                                              ),
                                                         ),
                                                         child: Icon(
-                                                          mod['icon'] as IconData,
+                                                          mod['icon']
+                                                              as IconData,
                                                           size: 15,
-                                                          color: isAllowed ? const Color(0xFF059669) : const Color(0xFF94A3B8),
+                                                          color: isAllowed
+                                                              ? const Color(
+                                                                  0xFF059669,
+                                                                )
+                                                              : const Color(
+                                                                  0xFF94A3B8,
+                                                                ),
                                                         ),
                                                       ),
                                                       const SizedBox(width: 8),
                                                       // Module Title & State
                                                       Expanded(
                                                         child: Column(
-                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           children: [
                                                             Text(
-                                                              mod['name'] as String,
+                                                              mod['name']
+                                                                  as String,
                                                               style: TextStyle(
                                                                 fontSize: 11.5,
-                                                                fontWeight: isAllowed ? FontWeight.w700 : FontWeight.w500,
-                                                                color: isAllowed ? const Color(0xFF0F172A) : const Color(0xFF94A3B8),
+                                                                fontWeight:
+                                                                    isAllowed
+                                                                    ? FontWeight
+                                                                          .w700
+                                                                    : FontWeight
+                                                                          .w500,
+                                                                color: isAllowed
+                                                                    ? const Color(
+                                                                        0xFF0F172A,
+                                                                      )
+                                                                    : const Color(
+                                                                        0xFF94A3B8,
+                                                                      ),
                                                               ),
-                                                              overflow: TextOverflow.ellipsis,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
                                                             ),
                                                             Text(
-                                                              isAllowed ? 'Allowed' : 'Restricted',
+                                                              isAllowed
+                                                                  ? 'Allowed'
+                                                                  : 'Restricted',
                                                               style: TextStyle(
                                                                 fontSize: 9.5,
-                                                                fontWeight: FontWeight.w700,
-                                                                color: isAllowed ? const Color(0xFF059669) : const Color(0xFF94A3B8),
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                                color: isAllowed
+                                                                    ? const Color(
+                                                                        0xFF059669,
+                                                                      )
+                                                                    : const Color(
+                                                                        0xFF94A3B8,
+                                                                      ),
                                                               ),
                                                             ),
                                                           ],
@@ -818,15 +1243,33 @@ class _UsersPageState extends State<UsersPage> {
                                                         width: 20,
                                                         height: 20,
                                                         decoration: BoxDecoration(
-                                                          color: isAllowed ? const Color(0xFF10B981) : Colors.white,
-                                                          borderRadius: BorderRadius.circular(5),
+                                                          color: isAllowed
+                                                              ? const Color(
+                                                                  0xFF10B981,
+                                                                )
+                                                              : Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                5,
+                                                              ),
                                                           border: Border.all(
-                                                            color: isAllowed ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                                                            color: isAllowed
+                                                                ? const Color(
+                                                                    0xFF10B981,
+                                                                  )
+                                                                : const Color(
+                                                                    0xFFCBD5E1,
+                                                                  ),
                                                             width: 1.5,
                                                           ),
                                                         ),
                                                         child: isAllowed
-                                                            ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                                            ? const Icon(
+                                                                Icons.check,
+                                                                size: 14,
+                                                                color: Colors
+                                                                    .white,
+                                                              )
                                                             : null,
                                                       ),
                                                     ],
@@ -840,20 +1283,35 @@ class _UsersPageState extends State<UsersPage> {
 
                                       // Bottom Security Callout
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 12,
+                                          vertical: 8,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFEFF6FF),
-                                          borderRadius: BorderRadius.circular(8),
-                                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFBFDBFE),
+                                          ),
                                         ),
                                         child: Row(
                                           children: const [
-                                            Icon(Icons.lock_person_rounded, size: 16, color: Color(0xFF1E40AF)),
+                                            Icon(
+                                              Icons.lock_person_rounded,
+                                              size: 16,
+                                              color: Color(0xFF1E40AF),
+                                            ),
                                             SizedBox(width: 8),
                                             Expanded(
                                               child: Text(
                                                 'Sidebar Enforcement: Only checked modules will be shown in this user\'s menu.',
-                                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF1E40AF)),
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Color(0xFF1E40AF),
+                                                ),
                                               ),
                                             ),
                                           ],
@@ -874,39 +1332,94 @@ class _UsersPageState extends State<UsersPage> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               if (!accessOnly) ...[
-                                _buildCustomField(controller: nameCtrl, label: 'Full Name *', hint: 'Staff name', icon: Icons.person_outline_rounded),
+                                _buildCustomField(
+                                  controller: nameCtrl,
+                                  label: 'Full Name *',
+                                  hint: 'Staff name',
+                                  icon: Icons.person_outline_rounded,
+                                ),
                                 const SizedBox(height: 10),
-                                _buildCustomField(controller: emailCtrl, label: 'Email Address *', hint: 'staff@gmail.com', icon: Icons.alternate_email_rounded),
+                                _buildCustomField(
+                                  controller: emailCtrl,
+                                  label: 'Email Address *',
+                                  hint: 'staff@gmail.com',
+                                  icon: Icons.alternate_email_rounded,
+                                ),
                                 const SizedBox(height: 10),
-                                _buildCustomField(controller: passwordCtrl, label: 'Password *', hint: '••••••••', icon: Icons.lock_outline_rounded, obscureText: true),
+                                _buildCustomField(
+                                  controller: passwordCtrl,
+                                  label: 'Password *',
+                                  hint: '••••••••',
+                                  icon: Icons.lock_outline_rounded,
+                                  obscureText: true,
+                                ),
                                 const SizedBox(height: 16),
                               ],
-                              const Text('Select Role Preset:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                              const Text(
+                                'Select Role Preset:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               ...systemRoles.map((r) {
                                 final isSelected = r['id'] == role;
                                 return ListTile(
                                   dense: true,
-                                  tileColor: isSelected ? const Color(0xFFEFF6FF) : null,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                  leading: Icon(r['icon'] as IconData, color: r['color'] as Color),
-                                  title: Text(r['label'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                                  subtitle: Text(r['description'] as String, style: const TextStyle(fontSize: 11)),
-                                  trailing: isSelected ? const Icon(Icons.check_circle, color: Color(0xFF1E40AF)) : null,
+                                  tileColor: isSelected
+                                      ? const Color(0xFFEFF6FF)
+                                      : null,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  leading: Icon(
+                                    r['icon'] as IconData,
+                                    color: r['color'] as Color,
+                                  ),
+                                  title: Text(
+                                    r['label'] as String,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    r['description'] as String,
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                  trailing: isSelected
+                                      ? const Icon(
+                                          Icons.check_circle,
+                                          color: Color(0xFF1E40AF),
+                                        )
+                                      : null,
                                   onTap: () => setDialogState(() {
                                     role = r['id'] as String;
-                                    selectedModuleIndices = getModuleIndicesForRole(role).toSet();
+                                    selectedModuleIndices =
+                                        getModuleIndicesForRole(role).toSet();
                                   }),
                                 );
                               }),
                               const SizedBox(height: 16),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  const Text('Custom Module Access:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                                  const Text(
+                                    'Custom Module Access:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
                                   Text(
                                     '${selectedModuleIndices.length} / 10 Allowed',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF1E40AF)),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 11,
+                                      color: Color(0xFF1E40AF),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -916,15 +1429,24 @@ class _UsersPageState extends State<UsersPage> {
                                 runSpacing: 8,
                                 children: allModules.map((mod) {
                                   final idx = mod['index'] as int;
-                                  final isAllowed = selectedModuleIndices.contains(idx);
+                                  final isAllowed = selectedModuleIndices
+                                      .contains(idx);
                                   return FilterChip(
                                     selected: isAllowed,
-                                    avatar: Icon(mod['icon'] as IconData, size: 14, color: isAllowed ? Colors.white : Colors.black54),
+                                    avatar: Icon(
+                                      mod['icon'] as IconData,
+                                      size: 14,
+                                      color: isAllowed
+                                          ? Colors.white
+                                          : Colors.black54,
+                                    ),
                                     label: Text(
                                       mod['name'] as String,
                                       style: TextStyle(
                                         fontSize: 11,
-                                        color: isAllowed ? Colors.white : Colors.black87,
+                                        color: isAllowed
+                                            ? Colors.white
+                                            : Colors.black87,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -951,7 +1473,10 @@ class _UsersPageState extends State<UsersPage> {
 
                   // 3. MODAL FOOTER ACTIONS
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 14,
+                    ),
                     decoration: const BoxDecoration(
                       color: Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.only(
@@ -966,7 +1491,11 @@ class _UsersPageState extends State<UsersPage> {
                         Flexible(
                           child: Text(
                             '$allowedCount of 10 Modules Allowed (${role.toUpperCase()})',
-                            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF64748B)),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF64748B),
+                            ),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -974,7 +1503,13 @@ class _UsersPageState extends State<UsersPage> {
                           children: [
                             TextButton(
                               onPressed: () => Navigator.pop(dialogCtx),
-                              child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                              child: const Text(
+                                'Cancel',
+                                style: TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 10),
                             ElevatedButton.icon(
@@ -982,8 +1517,13 @@ class _UsersPageState extends State<UsersPage> {
                                 backgroundColor: const Color(0xFF1E40AF),
                                 foregroundColor: Colors.white,
                                 elevation: 1,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
                               ),
                               icon: const Icon(Icons.check_rounded, size: 16),
                               onPressed: () async {
@@ -991,19 +1531,49 @@ class _UsersPageState extends State<UsersPage> {
                                 final email = emailCtrl.text.trim();
                                 final pass = passwordCtrl.text.trim();
 
-                                if (!accessOnly && (name.isEmpty || email.isEmpty || (!isEditing && pass.length < 6))) {
-                                  AppToast.showWarning(
-                                    context,
-                                    title: 'Incomplete Fields',
-                                    message: 'Please fill all required fields. Password must be 6+ characters.',
-                                  );
-                                  return;
+                                if (!accessOnly) {
+                                  if (name.isEmpty || name.length < 2) {
+                                    AppToast.showWarning(
+                                      context,
+                                      title: 'Invalid Name',
+                                      message:
+                                          'Please enter a valid full name.',
+                                    );
+                                    return;
+                                  }
+
+                                  if (email.isEmpty ||
+                                      !RegExp(
+                                        r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+                                      ).hasMatch(email)) {
+                                    AppToast.showWarning(
+                                      context,
+                                      title: 'Invalid Email',
+                                      message:
+                                          'Please enter a valid email address.',
+                                    );
+                                    return;
+                                  }
+
+                                  if (!isEditing && pass.length < 6) {
+                                    AppToast.showWarning(
+                                      context,
+                                      title: 'Invalid Password',
+                                      message: 'Password must be at least 6 characters.',
+                                    );
+                                    return;
+                                  }
                                 }
 
-                                final sortedPerms = selectedModuleIndices.toList()..sort();
+                                final sortedPerms =
+                                    selectedModuleIndices.toList()..sort();
                                 final payload = <String, dynamic>{
-                                  'name': name.isEmpty ? (user?['name'] ?? 'User') : name,
-                                  'email': email.isEmpty ? (user?['email'] ?? 'user@gmail.com') : email,
+                                  'name': name.isEmpty
+                                      ? (user?['name'] ?? 'User')
+                                      : name,
+                                  'email': email.isEmpty
+                                      ? (user?['email'] ?? 'user@gmail.com')
+                                      : email,
                                   'role': role,
                                   'permissions': sortedPerms,
                                 };
@@ -1012,18 +1582,25 @@ class _UsersPageState extends State<UsersPage> {
                                 Navigator.pop(dialogCtx);
                                 try {
                                   if (isEditing) {
-                                    await _api.put('/users/${user['id']}', payload);
+                                    await _api.put(
+                                      '/users/${user['id']}',
+                                      payload,
+                                    );
                                   } else {
                                     await _api.post('/users', payload);
                                   }
                                   if (mounted) {
                                     AppToast.showSuccess(
                                       context,
-                                      title: isEditing ? 'Access Updated!' : 'User Registered!',
+                                      title: isEditing
+                                          ? 'Access Updated!'
+                                          : 'User Registered!',
                                       message: isEditing
                                           ? '$name custom access updated (${sortedPerms.length}/10 modules granted).'
                                           : '$name registered with ${sortedPerms.length}/10 modules granted.',
-                                      duration: const Duration(milliseconds: 2200),
+                                      duration: const Duration(
+                                        milliseconds: 2200,
+                                      ),
                                     );
                                     _loadUsers();
                                   }
@@ -1031,15 +1608,24 @@ class _UsersPageState extends State<UsersPage> {
                                   if (mounted) {
                                     AppToast.showError(
                                       context,
-                                      title: isEditing ? 'Update Failed' : 'Creation Failed',
-                                      message: e.toString().replaceAll('Exception: ', ''),
+                                      title: isEditing
+                                          ? 'Update Failed'
+                                          : 'Creation Failed',
+                                      message: e.toString().replaceAll(
+                                        'Exception: ',
+                                        '',
+                                      ),
                                     );
                                   }
                                 }
                               },
                               label: Text(
-                                isEditing ? 'Save Role & Access' : 'Create User & Assign Access',
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                isEditing
+                                    ? 'Save Role & Access'
+                                    : 'Create User & Assign Access',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ],
@@ -1088,14 +1674,22 @@ class _UsersPageState extends State<UsersPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: Color(0xFF334155)),
+          style: const TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF334155),
+          ),
         ),
         const SizedBox(height: 5),
         TextField(
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF0F172A),
+          ),
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
@@ -1104,7 +1698,10 @@ class _UsersPageState extends State<UsersPage> {
             filled: true,
             fillColor: const Color(0xFFF8FAFC),
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 11,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(9),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -1115,7 +1712,10 @@ class _UsersPageState extends State<UsersPage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(9),
-              borderSide: const BorderSide(color: Color(0xFF1E40AF), width: 1.5),
+              borderSide: const BorderSide(
+                color: Color(0xFF1E40AF),
+                width: 1.5,
+              ),
             ),
           ),
         ),
@@ -1141,7 +1741,11 @@ class _UsersPageState extends State<UsersPage> {
                 color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.security_rounded, color: sidebarBlue, size: 20),
+              child: const Icon(
+                Icons.security_rounded,
+                color: sidebarBlue,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             const Expanded(
@@ -1150,7 +1754,11 @@ class _UsersPageState extends State<UsersPage> {
                 children: [
                   Text(
                     'Role Permissions & Access Guide',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                   SizedBox(height: 2),
                   Text(
@@ -1161,7 +1769,11 @@ class _UsersPageState extends State<UsersPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20, color: Colors.black45),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 20,
+                color: Colors.black45,
+              ),
               onPressed: () => Navigator.pop(ctx),
             ),
           ],
@@ -1192,16 +1804,25 @@ class _UsersPageState extends State<UsersPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: roleBg,
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: r['borderColor'] as Color),
+                              border: Border.all(
+                                color: r['borderColor'] as Color,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(r['icon'] as IconData, size: 14, color: roleColor),
+                                Icon(
+                                  r['icon'] as IconData,
+                                  size: 14,
+                                  color: roleColor,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   r['label'] as String,
@@ -1215,15 +1836,24 @@ class _UsersPageState extends State<UsersPage> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                              border: Border.all(
+                                color: const Color(0xFFCBD5E1),
+                              ),
                             ),
                             child: Text(
                               '${allowedIndices.length} / 10 Modules',
-                              style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+                              style: const TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF334155),
+                              ),
                             ),
                           ),
                         ],
@@ -1231,7 +1861,10 @@ class _UsersPageState extends State<UsersPage> {
                       const SizedBox(height: 6),
                       Text(
                         r['description'] as String,
-                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                        style: const TextStyle(
+                          fontSize: 11.5,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Wrap(
@@ -1242,29 +1875,44 @@ class _UsersPageState extends State<UsersPage> {
                           final isAllowed = allowedIndices.contains(idx);
 
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: isAllowed ? Colors.white : const Color(0xFFF1F5F9),
+                              color: isAllowed
+                                  ? Colors.white
+                                  : const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                color: isAllowed ? const Color(0xFF10B981) : const Color(0xFFCBD5E1),
+                                color: isAllowed
+                                    ? const Color(0xFF10B981)
+                                    : const Color(0xFFCBD5E1),
                               ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  isAllowed ? Icons.check_circle_rounded : Icons.lock_outline_rounded,
+                                  isAllowed
+                                      ? Icons.check_circle_rounded
+                                      : Icons.lock_outline_rounded,
                                   size: 11,
-                                  color: isAllowed ? const Color(0xFF10B981) : const Color(0xFF94A3B8),
+                                  color: isAllowed
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFF94A3B8),
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   mod['name'] as String,
                                   style: TextStyle(
                                     fontSize: 10.5,
-                                    fontWeight: isAllowed ? FontWeight.bold : FontWeight.normal,
-                                    color: isAllowed ? const Color(0xFF0F172A) : const Color(0xFF94A3B8),
+                                    fontWeight: isAllowed
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isAllowed
+                                        ? const Color(0xFF0F172A)
+                                        : const Color(0xFF94A3B8),
                                   ),
                                 ),
                               ],
@@ -1284,7 +1932,9 @@ class _UsersPageState extends State<UsersPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: sidebarBlue,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Close Guide'),
@@ -1299,7 +1949,10 @@ class _UsersPageState extends State<UsersPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('Delete User Account?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        title: const Text(
+          'Delete User Account?',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
         content: Text(
           'Are you sure you want to delete "${user['name']}"? This user will immediately lose system access.',
           style: const TextStyle(fontSize: 13, color: Colors.black87),
@@ -1313,7 +1966,9 @@ class _UsersPageState extends State<UsersPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () async {
               Navigator.pop(ctx);
@@ -1323,7 +1978,8 @@ class _UsersPageState extends State<UsersPage> {
                   AppToast.showSuccess(
                     context,
                     title: 'User Deleted',
-                    message: '${user['name']} has been removed from the system.',
+                    message:
+                        '${user['name']} has been removed from the system.',
                   );
                   _loadUsers();
                 }
@@ -1420,12 +2076,22 @@ class _UsersPageState extends State<UsersPage> {
                     style: const TextStyle(color: Colors.black, fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'Search users by name, email, or role...',
-                      hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
-                      prefixIcon: const Icon(Icons.search, size: 20, color: Colors.black54),
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 13,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 20,
+                        color: Colors.black54,
+                      ),
                       filled: true,
                       fillColor: const Color(0xFFF9FAFB),
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
@@ -1444,27 +2110,45 @@ class _UsersPageState extends State<UsersPage> {
                       backgroundColor: sidebarBlue,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   );
                   final guideBtn = OutlinedButton.icon(
                     onPressed: _showRolePermissionsGuide,
-                    icon: const Icon(Icons.shield_outlined, size: 16, color: sidebarBlue),
+                    icon: const Icon(
+                      Icons.shield_outlined,
+                      size: 16,
+                      color: sidebarBlue,
+                    ),
                     label: const Text('Permissions Matrix'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: sidebarBlue,
                       side: const BorderSide(color: Color(0xFFBFDBFE)),
                       backgroundColor: const Color(0xFFEFF6FF),
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   );
                   final refreshBtn = IconButton(
                     tooltip: 'Refresh',
                     onPressed: _loadUsers,
-                    icon: const Icon(Icons.refresh_rounded, color: Colors.black87, size: 20),
+                    icon: const Icon(
+                      Icons.refresh_rounded,
+                      color: Colors.black87,
+                      size: 20,
+                    ),
                   );
                   if (compact) {
                     return Column(
@@ -1514,12 +2198,19 @@ class _UsersPageState extends State<UsersPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline_rounded, color: Colors.red, size: 36),
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: Colors.red,
+                      size: 36,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       _errorMessage!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.black87, fontSize: 13),
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 13,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
@@ -1547,20 +2238,34 @@ class _UsersPageState extends State<UsersPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.group_off_rounded, size: 48, color: Colors.black26),
+                      const Icon(
+                        Icons.group_off_rounded,
+                        size: 48,
+                        color: Colors.black26,
+                      ),
                       const SizedBox(height: 12),
                       const Text(
                         'No user accounts found',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black),
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                          color: Colors.black,
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      const Text('Add staff or admin accounts to manage shop operations.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const Text(
+                        'Add staff or admin accounts to manage shop operations.',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
                       const SizedBox(height: 16),
                       ElevatedButton.icon(
                         onPressed: () => _showUserDialog(),
                         icon: const Icon(Icons.person_add_rounded, size: 16),
                         label: const Text('Create User'),
-                        style: ElevatedButton.styleFrom(backgroundColor: sidebarBlue, foregroundColor: Colors.white),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: sidebarBlue,
+                          foregroundColor: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -1591,7 +2296,9 @@ class _UsersPageState extends State<UsersPage> {
                       return Column(
                         children: List.generate(_filteredUsers.length, (idx) {
                           final u = _filteredUsers[idx];
-                          final role = (u['role'] ?? 'staff').toString().toLowerCase();
+                          final role = (u['role'] ?? 'staff')
+                              .toString()
+                              .toLowerCase();
                           final allowedIndices = getUserAllowedModuleIndices(u);
 
                           return Container(
@@ -1612,9 +2319,13 @@ class _UsersPageState extends State<UsersPage> {
                                   children: [
                                     CircleAvatar(
                                       radius: 16,
-                                      backgroundColor: _getRoleColor(role).withValues(alpha: 0.15),
+                                      backgroundColor: _getRoleColor(role)
+                                          .withValues(alpha: 0.15),
                                       child: Text(
-                                        (u['name'] ?? 'U').toString().substring(0, 1).toUpperCase(),
+                                        (u['name'] ?? 'U')
+                                            .toString()
+                                            .substring(0, 1)
+                                            .toUpperCase(),
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
@@ -1625,15 +2336,22 @@ class _UsersPageState extends State<UsersPage> {
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             u['name'] ?? '-',
-                                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 13.5,
+                                            ),
                                           ),
                                           Text(
                                             u['email'] ?? '-',
-                                            style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              color: Color(0xFF64748B),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -1643,12 +2361,17 @@ class _UsersPageState extends State<UsersPage> {
                                 ),
                                 const SizedBox(height: 8),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Flexible(
                                       child: Text(
                                         'Access: ${allowedIndices.length} of 10 Modules',
-                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0F172A),
+                                        ),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -1660,8 +2383,15 @@ class _UsersPageState extends State<UsersPage> {
                                           padding: const EdgeInsets.all(6),
                                           splashRadius: 16,
                                           tooltip: 'Change Access',
-                                          icon: const Icon(Icons.shield_rounded, size: 16, color: sidebarBlue),
-                                          onPressed: () => _showUserDialog(user: u, accessOnly: true),
+                                          icon: const Icon(
+                                            Icons.shield_rounded,
+                                            size: 16,
+                                            color: sidebarBlue,
+                                          ),
+                                          onPressed: () => _showUserDialog(
+                                            user: u,
+                                            accessOnly: true,
+                                          ),
                                         ),
                                         const SizedBox(width: 4),
                                         IconButton(
@@ -1669,8 +2399,13 @@ class _UsersPageState extends State<UsersPage> {
                                           padding: const EdgeInsets.all(6),
                                           splashRadius: 16,
                                           tooltip: 'Edit User',
-                                          icon: const Icon(Icons.edit_outlined, size: 16, color: sidebarBlue),
-                                          onPressed: () => _showUserDialog(user: u),
+                                          icon: const Icon(
+                                            Icons.edit_outlined,
+                                            size: 16,
+                                            color: sidebarBlue,
+                                          ),
+                                          onPressed: () =>
+                                              _showUserDialog(user: u),
                                         ),
                                         const SizedBox(width: 4),
                                         IconButton(
@@ -1678,7 +2413,11 @@ class _UsersPageState extends State<UsersPage> {
                                           padding: const EdgeInsets.all(6),
                                           splashRadius: 16,
                                           tooltip: 'Delete User',
-                                          icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            size: 16,
+                                            color: Colors.red,
+                                          ),
                                           onPressed: () => _deleteUser(u),
                                         ),
                                       ],
@@ -1699,19 +2438,85 @@ class _UsersPageState extends State<UsersPage> {
                       children: [
                         // TABLE HEADER
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                           decoration: const BoxDecoration(
                             color: Color(0xFFF9FAFB),
-                            border: Border(bottom: BorderSide(color: Color(0xFFE5E7EB))),
+                            border: Border(
+                              bottom: BorderSide(color: Color(0xFFE5E7EB)),
+                            ),
                           ),
                           child: const Row(
                             children: [
-                              Expanded(flex: 3, child: Text('User', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                              Expanded(flex: 3, child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Role', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                              Expanded(flex: 4, child: Text('Accessible Modules', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                              Expanded(flex: 2, child: Text('Created At', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                              SizedBox(width: 124, child: Text('Actions', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  'User',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  'Email',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Role',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  'Accessible Modules',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  'Created At',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 124,
+                                child: Text(
+                                  'Actions',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -1719,7 +2524,9 @@ class _UsersPageState extends State<UsersPage> {
                         // DATA ROWS
                         ...List.generate(_filteredUsers.length, (idx) {
                           final u = _filteredUsers[idx];
-                          final role = (u['role'] ?? 'staff').toString().toLowerCase();
+                          final role = (u['role'] ?? 'staff')
+                              .toString()
+                              .toLowerCase();
                           final allowedIndices = getUserAllowedModuleIndices(u);
 
                           return Container(
@@ -1733,7 +2540,10 @@ class _UsersPageState extends State<UsersPage> {
                                 ),
                               ),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
                             child: Row(
                               children: [
                                 // 1. User Avatar & Name
@@ -1743,9 +2553,13 @@ class _UsersPageState extends State<UsersPage> {
                                     children: [
                                       CircleAvatar(
                                         radius: 14,
-                                        backgroundColor: _getRoleColor(role).withValues(alpha: 0.15),
+                                        backgroundColor: _getRoleColor(role)
+                                            .withValues(alpha: 0.15),
                                         child: Text(
-                                          (u['name'] ?? 'U').toString().substring(0, 1).toUpperCase(),
+                                          (u['name'] ?? 'U')
+                                              .toString()
+                                              .substring(0, 1)
+                                              .toUpperCase(),
                                           style: TextStyle(
                                             fontSize: 11,
                                             fontWeight: FontWeight.bold,
@@ -1757,7 +2571,11 @@ class _UsersPageState extends State<UsersPage> {
                                       Flexible(
                                         child: Text(
                                           u['name'] ?? '-',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black,
+                                            fontSize: 13,
+                                          ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -1770,12 +2588,19 @@ class _UsersPageState extends State<UsersPage> {
                                   flex: 3,
                                   child: Row(
                                     children: [
-                                      const Icon(Icons.mail_outline_rounded, size: 14, color: Colors.black45),
+                                      const Icon(
+                                        Icons.mail_outline_rounded,
+                                        size: 14,
+                                        color: Colors.black45,
+                                      ),
                                       const SizedBox(width: 6),
                                       Flexible(
                                         child: Text(
                                           u['email'] ?? '-',
-                                          style: const TextStyle(color: Colors.black87, fontSize: 13),
+                                          style: const TextStyle(
+                                            color: Colors.black87,
+                                            fontSize: 13,
+                                          ),
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -1796,11 +2621,19 @@ class _UsersPageState extends State<UsersPage> {
                                 Expanded(
                                   flex: 4,
                                   child: InkWell(
-                                    onTap: () => _showUserDialog(user: u, accessOnly: true),
+                                    onTap: () => _showUserDialog(
+                                      user: u,
+                                      accessOnly: true,
+                                    ),
                                     borderRadius: BorderRadius.circular(6),
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-                                      child: _buildAccessibleModulesSummary(allowedIndices),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 4,
+                                      ),
+                                      child: _buildAccessibleModulesSummary(
+                                        allowedIndices,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1810,7 +2643,10 @@ class _UsersPageState extends State<UsersPage> {
                                   flex: 2,
                                   child: Text(
                                     _formatDate(u['created_at']),
-                                    style: const TextStyle(color: Color(0xFF4B5563), fontSize: 12),
+                                    style: const TextStyle(
+                                      color: Color(0xFF4B5563),
+                                      fontSize: 12,
+                                    ),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                   ),
@@ -1828,8 +2664,15 @@ class _UsersPageState extends State<UsersPage> {
                                         padding: const EdgeInsets.all(6),
                                         splashRadius: 16,
                                         tooltip: 'Role & Module Access',
-                                        icon: const Icon(Icons.shield_rounded, size: 16, color: sidebarBlue),
-                                        onPressed: () => _showUserDialog(user: u, accessOnly: true),
+                                        icon: const Icon(
+                                          Icons.shield_rounded,
+                                          size: 16,
+                                          color: sidebarBlue,
+                                        ),
+                                        onPressed: () => _showUserDialog(
+                                          user: u,
+                                          accessOnly: true,
+                                        ),
                                       ),
                                       const SizedBox(width: 4),
                                       IconButton(
@@ -1837,8 +2680,13 @@ class _UsersPageState extends State<UsersPage> {
                                         padding: const EdgeInsets.all(6),
                                         splashRadius: 16,
                                         tooltip: 'Edit Account',
-                                        icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF475569)),
-                                        onPressed: () => _showUserDialog(user: u),
+                                        icon: const Icon(
+                                          Icons.edit_outlined,
+                                          size: 16,
+                                          color: Color(0xFF475569),
+                                        ),
+                                        onPressed: () =>
+                                            _showUserDialog(user: u),
                                       ),
                                       const SizedBox(width: 4),
                                       IconButton(
@@ -1846,7 +2694,11 @@ class _UsersPageState extends State<UsersPage> {
                                         padding: const EdgeInsets.all(6),
                                         splashRadius: 16,
                                         tooltip: 'Delete User',
-                                        icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                                        icon: const Icon(
+                                          Icons.delete_outline,
+                                          size: 16,
+                                          color: Colors.red,
+                                        ),
                                         onPressed: () => _deleteUser(u),
                                       ),
                                     ],
@@ -1859,21 +2711,33 @@ class _UsersPageState extends State<UsersPage> {
 
                         // TABLE FOOTER
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                           decoration: const BoxDecoration(
                             color: Color(0xFFF9FAFB),
-                            border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+                            border: Border(
+                              top: BorderSide(color: Color(0xFFE5E7EB)),
+                            ),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 'Showing ${_filteredUsers.length} of ${_users.length} user accounts',
-                                style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF6B7280),
+                                ),
                               ),
                               Text(
                                 'Roles: ${systemRoles.length} configured | 10 Modules Enforced',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black87),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ],
                           ),
@@ -1906,14 +2770,20 @@ class _UsersPageState extends State<UsersPage> {
             SizedBox(width: 5),
             Text(
               'Full Access (All 10 Modules)',
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF7C3AED)),
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF7C3AED),
+              ),
             ),
           ],
         ),
       );
     }
 
-    final moduleNames = allowedIndices.map((i) => allModules[i]['name'] as String).toList();
+    final moduleNames = allowedIndices
+        .map((i) => allModules[i]['name'] as String)
+        .toList();
     final firstThree = moduleNames.take(3).join(', ');
     final remaining = moduleNames.length - 3;
 
@@ -1929,14 +2799,22 @@ class _UsersPageState extends State<UsersPage> {
           ),
           child: Text(
             '${allowedIndices.length} Modules',
-            style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFF059669)),
+            style: const TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF059669),
+            ),
           ),
         ),
         const SizedBox(width: 6),
         Flexible(
           child: Text(
             remaining > 0 ? '$firstThree +$remaining' : firstThree,
-            style: const TextStyle(fontSize: 11.5, color: Color(0xFF334155), fontWeight: FontWeight.w500),
+            style: const TextStyle(
+              fontSize: 11.5,
+              color: Color(0xFF334155),
+              fontWeight: FontWeight.w500,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -1983,17 +2861,29 @@ class _UsersPageState extends State<UsersPage> {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF6B7280)),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF6B7280),
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: TextStyle(fontSize: 11, color: accentColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: accentColor,
+                    fontWeight: FontWeight.w500,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),

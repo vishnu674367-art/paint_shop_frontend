@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import 'app_toast.dart';
@@ -27,15 +26,8 @@ class _LoginPageState extends State<LoginPage> {
   static const Color inputBorder = Color(0xFFCBD5E1);
   static const Color subtitleSlate = Color(0xFF475569);
 
-  String get apiBaseUrl {
-    if (kIsWeb) return 'http://localhost:5001/api';
-
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5001/api';
-    }
-
-    return 'http://localhost:5001/api';
-  }
+  static const String apiBaseUrl =
+      'https://paint-shop-backend-52ro.onrender.com/api';
 
   @override
   void dispose() {
@@ -48,11 +40,20 @@ class _LoginPageState extends State<LoginPage> {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
+    if (username.isEmpty) {
       AppToast.showWarning(
         context,
-        title: 'Missing Credentials',
-        message: 'Please enter both username and password.',
+        title: 'Invalid username',
+        message: 'Please enter your username.',
+      );
+      return;
+    }
+
+    if (password.isEmpty) {
+      AppToast.showWarning(
+        context,
+        title: 'Invalid Password',
+        message: 'Please enter your password.',
       );
       return;
     }

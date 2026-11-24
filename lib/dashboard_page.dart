@@ -82,16 +82,52 @@ class _DashboardPageState extends State<DashboardPage> {
   ];
 
   static const List<_SidebarMenuItem> _masterMenuItems = [
-    _SidebarMenuItem(pageIndex: 0, title: 'Dashboard', icon: Icons.dashboard_rounded),
-    _SidebarMenuItem(pageIndex: 1, title: 'Billing', icon: Icons.receipt_long_rounded),
-    _SidebarMenuItem(pageIndex: 2, title: 'Sales', icon: Icons.bar_chart_rounded),
-    _SidebarMenuItem(pageIndex: 3, title: 'Purchase', icon: Icons.shopping_cart_rounded),
-    _SidebarMenuItem(pageIndex: 4, title: 'Products', icon: Icons.inventory_2_rounded),
-    _SidebarMenuItem(pageIndex: 5, title: 'Customers', icon: Icons.people_alt_rounded),
-    _SidebarMenuItem(pageIndex: 6, title: 'Suppliers', icon: Icons.local_shipping_rounded),
-    _SidebarMenuItem(pageIndex: 7, title: 'Reports', icon: Icons.analytics_rounded),
+    _SidebarMenuItem(
+      pageIndex: 0,
+      title: 'Dashboard',
+      icon: Icons.dashboard_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 1,
+      title: 'Billing',
+      icon: Icons.receipt_long_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 2,
+      title: 'Sales',
+      icon: Icons.bar_chart_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 3,
+      title: 'Purchase',
+      icon: Icons.shopping_cart_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 4,
+      title: 'Products',
+      icon: Icons.inventory_2_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 5,
+      title: 'Customers',
+      icon: Icons.people_alt_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 6,
+      title: 'Suppliers',
+      icon: Icons.local_shipping_rounded,
+    ),
+    _SidebarMenuItem(
+      pageIndex: 7,
+      title: 'Reports',
+      icon: Icons.analytics_rounded,
+    ),
     _SidebarMenuItem(pageIndex: 8, title: 'Users', icon: Icons.group_rounded),
-    _SidebarMenuItem(pageIndex: 9, title: 'Settings', icon: Icons.settings_rounded),
+    _SidebarMenuItem(
+      pageIndex: 9,
+      title: 'Settings',
+      icon: Icons.settings_rounded,
+    ),
   ];
 
   /// Role & Custom Module Permissions Matrix:
@@ -157,7 +193,9 @@ class _DashboardPageState extends State<DashboardPage> {
 
   List<_SidebarMenuItem> get _visibleMenuItems {
     final allowed = _allowedPageIndices;
-    return _masterMenuItems.where((item) => allowed.contains(item.pageIndex)).toList();
+    return _masterMenuItems
+        .where((item) => allowed.contains(item.pageIndex))
+        .toList();
   }
 
   int selectedIndex = 0;
@@ -205,11 +243,11 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 
   String get _apiBaseUrl {
-    if (kIsWeb) return 'http://localhost:5001/api';
+    if (kIsWeb) return 'https://paint-shop-backend-52ro.onrender.com/api';
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5001/api';
+      return 'https://paint-shop-backend-52ro.onrender.com/api';
     }
-    return 'http://localhost:5001/api';
+    return 'https://paint-shop-backend-52ro.onrender.com/api';
   }
 
   @override
@@ -227,7 +265,8 @@ class _DashboardPageState extends State<DashboardPage> {
     if (widget.showWelcomeToast) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        final displayName = _currentUser['name']?.toString() ??
+        final displayName =
+            _currentUser['name']?.toString() ??
             widget.currentUser?['name']?.toString() ??
             'Admin';
         AppToast.showSuccess(
@@ -242,13 +281,15 @@ class _DashboardPageState extends State<DashboardPage> {
 
   Future<void> _fetchCurrentUser() async {
     try {
-      final response = await http.get(
-        Uri.parse('$_apiBaseUrl/auth/me'),
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': 'Bearer ${widget.token}',
-        },
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            Uri.parse('$_apiBaseUrl/auth/me'),
+            headers: {
+              'Accept': 'application/json',
+              'Authorization': 'Bearer ${widget.token}',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -395,7 +436,11 @@ class _DashboardPageState extends State<DashboardPage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: const Color(0xFFFECACA)),
               ),
-              child: const Icon(Icons.shield_outlined, size: 48, color: Color(0xFFDC2626)),
+              child: const Icon(
+                Icons.shield_outlined,
+                size: 48,
+                color: Color(0xFFDC2626),
+              ),
             ),
             const SizedBox(height: 18),
             const Text(
@@ -421,12 +466,19 @@ class _DashboardPageState extends State<DashboardPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: sidebarBlue,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () {
                 setState(() {
-                  selectedIndex = _allowedPageIndices.isNotEmpty ? _allowedPageIndices.first : 0;
+                  selectedIndex = _allowedPageIndices.isNotEmpty
+                      ? _allowedPageIndices.first
+                      : 0;
                 });
               },
               icon: const Icon(Icons.arrow_back_rounded, size: 16),
@@ -477,9 +529,14 @@ class _DashboardPageState extends State<DashboardPage> {
       context: context,
       builder: (dialogCtx) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           backgroundColor: Colors.white,
-          insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420, maxHeight: 520),
             child: Padding(
@@ -500,7 +557,11 @@ class _DashboardPageState extends State<DashboardPage> {
                               color: const Color(0xFFEFF6FF),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Icon(Icons.notifications_rounded, color: sidebarBlue, size: 20),
+                            child: const Icon(
+                              Icons.notifications_rounded,
+                              color: sidebarBlue,
+                              size: 20,
+                            ),
                           ),
                           const SizedBox(width: 10),
                           const Text(
@@ -514,7 +575,10 @@ class _DashboardPageState extends State<DashboardPage> {
                           if (_lowStock.isNotEmpty) ...[
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 7,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFFEE2E2),
                                 borderRadius: BorderRadius.circular(10),
@@ -533,7 +597,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                       IconButton(
                         onPressed: () => Navigator.pop(dialogCtx),
-                        icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF64748B)),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: Color(0xFF64748B),
+                        ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                       ),
@@ -562,8 +630,12 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             const SizedBox(height: 8),
                             ..._lowStock.map((item) {
-                              final pName = item['product_name'] ?? item['name'] ?? 'Product';
-                              final qty = item['stock_qty'] ?? item['stock'] ?? 0;
+                              final pName =
+                                  item['product_name'] ??
+                                  item['name'] ??
+                                  'Product';
+                              final qty =
+                                  item['stock_qty'] ?? item['stock'] ?? 0;
                               final unit = item['unit'] ?? 'units';
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 8),
@@ -571,15 +643,22 @@ class _DashboardPageState extends State<DashboardPage> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFFF7ED),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: const Color(0xFFFED7AA)),
+                                  border: Border.all(
+                                    color: const Color(0xFFFED7AA),
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.warning_amber_rounded, color: Color(0xFFEA580C), size: 20),
+                                    const Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: Color(0xFFEA580C),
+                                      size: 20,
+                                    ),
                                     const SizedBox(width: 10),
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             '$pName is running low!',
@@ -623,15 +702,22 @@ class _DashboardPageState extends State<DashboardPage> {
                             decoration: BoxDecoration(
                               color: const Color(0xFFECFDF5),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFFA7F3D0)),
+                              border: Border.all(
+                                color: const Color(0xFFA7F3D0),
+                              ),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.check_circle_rounded, color: Color(0xFF059669), size: 20),
+                                Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Color(0xFF059669),
+                                  size: 20,
+                                ),
                                 SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         'System Online & Healthy',
@@ -667,7 +753,13 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       TextButton(
                         onPressed: () => Navigator.pop(dialogCtx),
-                        child: const Text('Close', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600)),
+                        child: const Text(
+                          'Close',
+                          style: TextStyle(
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -763,13 +855,19 @@ class _DashboardPageState extends State<DashboardPage> {
                     top: -2,
                     right: -2,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEF4444),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white, width: 1.5),
                       ),
-                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
                       child: Text(
                         '${_lowStock.length}',
                         textAlign: TextAlign.center,
@@ -1041,13 +1139,9 @@ class _DashboardPageState extends State<DashboardPage> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: selected
-                          ? Colors.white
-                          : const Color(0xFFE2E8F0),
+                      color: selected ? Colors.white : const Color(0xFFE2E8F0),
                       fontSize: 13,
-                      fontWeight: selected
-                          ? FontWeight.w700
-                          : FontWeight.w500,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                       letterSpacing: 0.1,
                     ),
                   ),
@@ -1172,10 +1266,15 @@ class _DashboardPageState extends State<DashboardPage> {
                     physics: const ClampingScrollPhysics(),
                     padding: EdgeInsets.zero,
                     itemCount: _visibleMenuItems.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 3),
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 3),
                     itemBuilder: (context, i) {
                       final item = _visibleMenuItems[i];
-                      return buildNavItem(item.pageIndex, item.title, item.icon);
+                      return buildNavItem(
+                        item.pageIndex,
+                        item.title,
+                        item.icon,
+                      );
                     },
                   ),
                 ),
@@ -1411,7 +1510,9 @@ class _DashboardPageState extends State<DashboardPage> {
         value: '${_lowStock.length} Items',
         subtitle: _lowStock.isEmpty ? 'All healthy' : 'Reorder alert',
         icon: Icons.warning_amber_rounded,
-        accentColor: _lowStock.isEmpty ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+        accentColor: _lowStock.isEmpty
+            ? const Color(0xFF10B981)
+            : const Color(0xFFEF4444),
         isAlert: _lowStock.isNotEmpty,
         onTap: () => selectMenu(4),
       ),
@@ -1436,7 +1537,20 @@ class _DashboardPageState extends State<DashboardPage> {
   // 3. SALES OVERVIEW & TREND GRAPH (REAL MULTI-MONTH TIMELINE)
   List<Map<String, dynamic>> _prepareSixMonthSales() {
     final now = DateTime.now();
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthNames = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final List<Map<String, dynamic>> result = [];
 
     for (int i = 5; i >= 0; i--) {
@@ -1460,27 +1574,22 @@ class _DashboardPageState extends State<DashboardPage> {
             ? (double.tryParse('${_monthlySales.first['amount']}') ?? 9548.0)
             : 9548.0;
         final pastRatios = [0.82, 1.12, 0.94, 1.28, 1.06];
-        amount = double.parse((base * pastRatios[(5 - i) % pastRatios.length]).toStringAsFixed(0));
+        amount = double.parse(
+          (base * pastRatios[(5 - i) % pastRatios.length]).toStringAsFixed(0),
+        );
       }
 
-      result.add({
-        'month': mName,
-        'amount': amount,
-        'isCurrent': i == 0,
-      });
+      result.add({'month': mName, 'amount': amount, 'isCurrent': i == 0});
     }
     return result;
   }
 
   Widget _buildSalesTrendCard() {
     final sixMonths = _prepareSixMonthSales();
-    final maxAmount = sixMonths.fold<double>(
-      0.0,
-      (maxV, it) {
-        final a = it['amount'] as double;
-        return a > maxV ? a : maxV;
-      },
-    );
+    final maxAmount = sixMonths.fold<double>(0.0, (maxV, it) {
+      final a = it['amount'] as double;
+      return a > maxV ? a : maxV;
+    });
     final effectiveMax = maxAmount > 0 ? (maxAmount * 1.25) : 15000.0;
 
     return _cardContainer(
@@ -1501,7 +1610,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFDBEAFE)),
                     ),
-                    child: const Icon(Icons.insights_rounded, color: sidebarBlue, size: 18),
+                    child: const Icon(
+                      Icons.insights_rounded,
+                      color: sidebarBlue,
+                      size: 18,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   const Column(
@@ -1535,7 +1648,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 children: [
                   // Live Billed Pill
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF0FDF4),
                       borderRadius: BorderRadius.circular(20),
@@ -1656,7 +1772,10 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildSalesBarChart(List<Map<String, dynamic>> sixMonths, double effectiveMax) {
+  Widget _buildSalesBarChart(
+    List<Map<String, dynamic>> sixMonths,
+    double effectiveMax,
+  ) {
     const double plotHeight = 138.0;
 
     return Stack(
@@ -1671,8 +1790,12 @@ class _DashboardPageState extends State<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _chartGridRow('₹${(effectiveMax / 1000).toStringAsFixed(0)}k'),
-              _chartGridRow('₹${((effectiveMax * 0.66) / 1000).toStringAsFixed(0)}k'),
-              _chartGridRow('₹${((effectiveMax * 0.33) / 1000).toStringAsFixed(0)}k'),
+              _chartGridRow(
+                '₹${((effectiveMax * 0.66) / 1000).toStringAsFixed(0)}k',
+              ),
+              _chartGridRow(
+                '₹${((effectiveMax * 0.33) / 1000).toStringAsFixed(0)}k',
+              ),
               _chartGridRow('₹0', isBaseline: true),
             ],
           ),
@@ -1701,7 +1824,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     // Value badge above bar
                     isCurrent
                         ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF1E40AF), Color(0xFF2563EB)],
@@ -1728,11 +1854,16 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                           )
                         : Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF1F5F9),
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFE2E8F0)),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
                             ),
                             child: Text(
                               amountStr,
@@ -1757,14 +1888,13 @@ class _DashboardPageState extends State<DashboardPage> {
                                   Color(0xFF2563EB),
                                   Color(0xFF60A5FA),
                                 ]
-                              : const [
-                                  Color(0xFF94A3B8),
-                                  Color(0xFF60A5FA),
-                                ],
+                              : const [Color(0xFF94A3B8), Color(0xFF60A5FA)],
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
                         ),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(8),
+                        ),
                         boxShadow: isCurrent
                             ? [
                                 BoxShadow(
@@ -1787,11 +1917,17 @@ class _DashboardPageState extends State<DashboardPage> {
                     // Month badge at bottom
                     isCurrent
                         ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEFF6FF),
                               borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: const Color(0xFF93C5FD), width: 1.2),
+                              border: Border.all(
+                                color: const Color(0xFF93C5FD),
+                                width: 1.2,
+                              ),
                             ),
                             child: Text(
                               item['month'] as String,
@@ -1823,7 +1959,10 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildSalesTrendLineChart(List<Map<String, dynamic>> sixMonths, double effectiveMax) {
+  Widget _buildSalesTrendLineChart(
+    List<Map<String, dynamic>> sixMonths,
+    double effectiveMax,
+  ) {
     return Stack(
       children: [
         // Horizontal Grid lines & Y-axis labels with solid baseline
@@ -1836,8 +1975,12 @@ class _DashboardPageState extends State<DashboardPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _chartGridRow('₹${(effectiveMax / 1000).toStringAsFixed(0)}k'),
-              _chartGridRow('₹${((effectiveMax * 0.66) / 1000).toStringAsFixed(0)}k'),
-              _chartGridRow('₹${((effectiveMax * 0.33) / 1000).toStringAsFixed(0)}k'),
+              _chartGridRow(
+                '₹${((effectiveMax * 0.66) / 1000).toStringAsFixed(0)}k',
+              ),
+              _chartGridRow(
+                '₹${((effectiveMax * 0.33) / 1000).toStringAsFixed(0)}k',
+              ),
               _chartGridRow('₹0', isBaseline: true),
             ],
           ),
@@ -1868,11 +2011,17 @@ class _DashboardPageState extends State<DashboardPage> {
               final isCurrent = item['isCurrent'] as bool;
               return isCurrent
                   ? Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: const Color(0xFF93C5FD), width: 1.2),
+                        border: Border.all(
+                          color: const Color(0xFF93C5FD),
+                          width: 1.2,
+                        ),
                       ),
                       child: Text(
                         item['month'] as String,
@@ -1910,7 +2059,9 @@ class _DashboardPageState extends State<DashboardPage> {
             label,
             style: TextStyle(
               fontSize: 9.5,
-              color: isBaseline ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+              color: isBaseline
+                  ? const Color(0xFF475569)
+                  : const Color(0xFF94A3B8),
               fontWeight: isBaseline ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
@@ -1918,7 +2069,9 @@ class _DashboardPageState extends State<DashboardPage> {
         Expanded(
           child: Divider(
             height: 1,
-            color: isBaseline ? const Color(0xFFCBD5E1) : const Color(0xFFF1F5F9),
+            color: isBaseline
+                ? const Color(0xFFCBD5E1)
+                : const Color(0xFFF1F5F9),
             thickness: isBaseline ? 1.5 : 1,
           ),
         ),
@@ -2002,7 +2155,11 @@ class _DashboardPageState extends State<DashboardPage> {
                         ),
                         const Text(
                           'Total Sales',
-                          style: TextStyle(fontSize: 10, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
@@ -2049,7 +2206,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                     Text(
                       _money(amount),
-                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -2381,7 +2541,10 @@ class _DashboardPageState extends State<DashboardPage> {
                             ),
                             Text(
                               'All paint products meet minimum safety thresholds.',
-                              style: TextStyle(fontSize: 11, color: Color(0xFF15803D)),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFF15803D),
+                              ),
                             ),
                           ],
                         ),
@@ -2393,7 +2556,10 @@ class _DashboardPageState extends State<DashboardPage> {
                     children: [
                       Expanded(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(6),
@@ -2402,14 +2568,21 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: Text(
                             'Total Stock: ${_summary['totalStock'] ?? 290} Units',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF166534)),
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF166534),
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: 6,
+                            horizontal: 8,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(6),
@@ -2418,7 +2591,11 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: const Text(
                             'Low Stock: 0 Items',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF166534)),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF166534),
+                            ),
                           ),
                         ),
                       ),
@@ -2666,6 +2843,7 @@ class _ExecutiveKpiCard extends StatelessWidget {
     );
   }
 }
+
 // =========================================================
 // DYNAMIC DONUT CHART PAINTER
 // =========================================================
@@ -2794,7 +2972,10 @@ class _SalesSplineAreaPainter extends CustomPainter {
       canvas.drawCircle(
         pt,
         isCurrent ? 7.0 : 5.5,
-        Paint()..color = (isCurrent ? const Color(0xFF1E40AF) : const Color(0xFF3B82F6)).withValues(alpha: 0.25),
+        Paint()
+          ..color =
+              (isCurrent ? const Color(0xFF1E40AF) : const Color(0xFF3B82F6))
+                  .withValues(alpha: 0.25),
       );
 
       // White ring
@@ -2808,7 +2989,10 @@ class _SalesSplineAreaPainter extends CustomPainter {
       canvas.drawCircle(
         pt,
         isCurrent ? 3.5 : 2.5,
-        Paint()..color = isCurrent ? const Color(0xFF1E40AF) : const Color(0xFF2563EB),
+        Paint()
+          ..color = isCurrent
+              ? const Color(0xFF1E40AF)
+              : const Color(0xFF2563EB),
       );
 
       // Amount label text above point
@@ -2822,7 +3006,9 @@ class _SalesSplineAreaPainter extends CustomPainter {
           style: TextStyle(
             fontSize: isCurrent ? 10.5 : 9.5,
             fontWeight: isCurrent ? FontWeight.w800 : FontWeight.w600,
-            color: isCurrent ? const Color(0xFF1E3A8A) : const Color(0xFF475569),
+            color: isCurrent
+                ? const Color(0xFF1E3A8A)
+                : const Color(0xFF475569),
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -2838,10 +3024,7 @@ class _SalesSplineAreaPainter extends CustomPainter {
           ),
           const Radius.circular(8),
         );
-        canvas.drawRRect(
-          pillRect,
-          Paint()..color = const Color(0xFFEFF6FF),
-        );
+        canvas.drawRRect(pillRect, Paint()..color = const Color(0xFFEFF6FF));
         canvas.drawRRect(
           pillRect,
           Paint()
@@ -2851,7 +3034,10 @@ class _SalesSplineAreaPainter extends CustomPainter {
         );
       }
 
-      tp.paint(canvas, Offset(pt.dx - tp.width / 2, pt.dy - 16 - tp.height / 2));
+      tp.paint(
+        canvas,
+        Offset(pt.dx - tp.width / 2, pt.dy - 16 - tp.height / 2),
+      );
     }
   }
 

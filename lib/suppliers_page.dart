@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_toast.dart';
 import 'responsive_ui.dart';
 import 'api_service.dart';
@@ -63,17 +64,32 @@ class _SuppliersPageState extends State<SuppliersPage> {
       final email = (s['email'] ?? '').toString().toLowerCase();
       final contact = (s['contact_person'] ?? '').toString().toLowerCase();
       final address = (s['address'] ?? '').toString().toLowerCase();
-      return name.contains(q) || phone.contains(q) || gst.contains(q) || email.contains(q) || contact.contains(q) || address.contains(q);
+      return name.contains(q) ||
+          phone.contains(q) ||
+          gst.contains(q) ||
+          email.contains(q) ||
+          contact.contains(q) ||
+          address.contains(q);
     }).toList();
   }
 
   void _showSupplierDialog({Map<String, dynamic>? supplier}) {
     final isEditing = supplier != null;
-    final nameCtrl = TextEditingController(text: supplier?['name']?.toString() ?? '');
-    final phoneCtrl = TextEditingController(text: supplier?['phone']?.toString() ?? '');
-    final emailCtrl = TextEditingController(text: supplier?['email']?.toString() ?? '');
-    final gstCtrl = TextEditingController(text: supplier?['gst_number']?.toString() ?? '');
-    final addressCtrl = TextEditingController(text: supplier?['address']?.toString() ?? '');
+    final nameCtrl = TextEditingController(
+      text: supplier?['name']?.toString() ?? '',
+    );
+    final phoneCtrl = TextEditingController(
+      text: supplier?['phone']?.toString() ?? '',
+    );
+    final emailCtrl = TextEditingController(
+      text: supplier?['email']?.toString() ?? '',
+    );
+    final gstCtrl = TextEditingController(
+      text: supplier?['gst_number']?.toString() ?? '',
+    );
+    final addressCtrl = TextEditingController(
+      text: supplier?['address']?.toString() ?? '',
+    );
 
     showDialog(
       context: context,
@@ -92,7 +108,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 color: const Color(0xFFEFF6FF),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.local_shipping_rounded, color: sidebarBlue, size: 20),
+              child: const Icon(
+                Icons.local_shipping_rounded,
+                color: sidebarBlue,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -101,7 +121,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 children: [
                   Text(
                     isEditing ? 'Edit Supplier' : 'Add New Supplier',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.black),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   const Text(
@@ -112,7 +136,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
               ),
             ),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20, color: Colors.black45),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 20,
+                color: Colors.black45,
+              ),
               onPressed: () => Navigator.pop(ctx),
             ),
           ],
@@ -194,19 +222,41 @@ class _SuppliersPageState extends State<SuppliersPage> {
             label: Text(isEditing ? 'Update Supplier' : 'Save Supplier'),
             onPressed: () async {
               final name = nameCtrl.text.trim();
-              if (name.isEmpty) {
+              if (name.isEmpty || name.length < 2) {
                 AppToast.showWarning(
                   context,
-                  title: 'Supplier Name Required',
-                  message: 'Please enter a name for the supplier.',
+                  title: 'Invalid Name',
+                  message: 'Please enter a valid supplier name.',
+                );
+                return;
+              }
+
+              final phone = phoneCtrl.text.trim();
+              if (phone.isNotEmpty && !RegExp(r"^\d{10}$").hasMatch(phone)) {
+                AppToast.showWarning(
+                  context,
+                  title: 'Invalid Phone Number',
+                  message: 'Please enter a valid 10-digit mobile number.',
+                );
+                return;
+              }
+
+              final email = emailCtrl.text.trim();
+              if (email.isNotEmpty &&
+                  !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+                      .hasMatch(email)) {
+                AppToast.showWarning(
+                  context,
+                  title: 'Invalid Email',
+                  message: 'Please enter a valid email address.',
                 );
                 return;
               }
 
               final payload = {
                 'name': name,
-                'phone': phoneCtrl.text.trim(),
-                'email': emailCtrl.text.trim(),
+                'phone': phone,
+                'email': email,
                 'address': addressCtrl.text.trim(),
                 'gst_number': gstCtrl.text.trim(),
               };
@@ -221,7 +271,9 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 if (mounted) {
                   AppToast.showSuccess(
                     context,
-                    title: isEditing ? 'Supplier Updated!' : 'Supplier Created!',
+                    title: isEditing
+                        ? 'Supplier Updated!'
+                        : 'Supplier Created!',
                     message: isEditing
                         ? '$name details updated successfully.'
                         : '$name has been added as a supplier.',
@@ -250,12 +302,21 @@ class _SuppliersPageState extends State<SuppliersPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('Delete Supplier', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
+        title: const Text(
+          'Delete Supplier',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
         content: Text('Are you sure you want to delete "${supplier['name']}"?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete'),
           ),
@@ -312,14 +373,16 @@ class _SuppliersPageState extends State<SuppliersPage> {
                   ),
                   _buildSummaryBox(
                     title: 'GST Registered',
-                    value: '${_suppliers.where((s) => (s['gst_number'] ?? '').toString().isNotEmpty).length} Registered',
+                    value:
+                        '${_suppliers.where((s) => (s['gst_number'] ?? '').toString().isNotEmpty).length} Registered',
                     subtitle: 'Suppliers with valid GSTIN',
                     icon: Icons.verified_user_rounded,
                     accentColor: primaryGreen,
                   ),
                   _buildSummaryBox(
                     title: 'Contact Reachable',
-                    value: '${_suppliers.where((s) => (s['phone'] ?? '').toString().isNotEmpty).length} Active Phone',
+                    value:
+                        '${_suppliers.where((s) => (s['phone'] ?? '').toString().isNotEmpty).length} Active Phone',
                     subtitle: 'Vendors with direct phone line',
                     icon: Icons.phone_in_talk_rounded,
                     accentColor: const Color(0xFFF59E0B),
@@ -348,26 +411,37 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 builder: (context) {
                   final compact = MediaQuery.sizeOf(context).width < 700;
                   final searchBox = TextField(
-                      onChanged: (val) => setState(() => _searchQuery = val),
-                      style: const TextStyle(color: Colors.black, fontSize: 13),
-                      decoration: InputDecoration(
-                        hintText: 'Search suppliers by name, GSTIN, phone, or email...',
-                        hintStyle: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13),
-                        prefixIcon: const Icon(Icons.search, size: 20, color: Colors.black54),
-                        filled: true,
-                        fillColor: const Color(0xFFF9FAFB),
-                        isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
-                        ),
+                    onChanged: (val) => setState(() => _searchQuery = val),
+                    style: const TextStyle(color: Colors.black, fontSize: 13),
+                    decoration: InputDecoration(
+                      hintText:
+                          'Search suppliers by name, GSTIN, phone, or email...',
+                      hintStyle: const TextStyle(
+                        color: Color(0xFF9CA3AF),
+                        fontSize: 13,
                       ),
-                    );
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 20,
+                        color: Colors.black54,
+                      ),
+                      filled: true,
+                      fillColor: const Color(0xFFF9FAFB),
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                    ),
+                  );
                   final addBtn = ElevatedButton.icon(
                     onPressed: () => _showSupplierDialog(),
                     icon: const Icon(Icons.add_business_rounded, size: 17),
@@ -376,14 +450,23 @@ class _SuppliersPageState extends State<SuppliersPage> {
                       backgroundColor: sidebarBlue,
                       foregroundColor: Colors.white,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   );
                   final refreshBtn = IconButton(
                     tooltip: 'Refresh',
                     onPressed: _loadSuppliers,
-                    icon: const Icon(Icons.refresh_rounded, color: Colors.black87, size: 20),
+                    icon: const Icon(
+                      Icons.refresh_rounded,
+                      color: Colors.black87,
+                      size: 20,
+                    ),
                   );
                   if (compact) {
                     return Column(
@@ -392,7 +475,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
                         searchBox,
                         const SizedBox(height: 10),
                         Row(
-                          children: [Expanded(child: addBtn), const SizedBox(width: 8), refreshBtn],
+                          children: [
+                            Expanded(child: addBtn),
+                            const SizedBox(width: 8),
+                            refreshBtn,
+                          ],
                         ),
                       ],
                     );
@@ -429,11 +516,21 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.error_outline, size: 40, color: Colors.red),
+                    const Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: Colors.red,
+                    ),
                     const SizedBox(height: 8),
-                    Text(_errorMessage!, style: const TextStyle(color: Colors.black87)),
+                    Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.black87),
+                    ),
                     const SizedBox(height: 12),
-                    ElevatedButton(onPressed: _loadSuppliers, child: const Text('Try Again')),
+                    ElevatedButton(
+                      onPressed: _loadSuppliers,
+                      child: const Text('Try Again'),
+                    ),
                   ],
                 ),
               )
@@ -449,17 +546,34 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.local_shipping_outlined, size: 48, color: Colors.grey),
+                    const Icon(
+                      Icons.local_shipping_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(height: 10),
-                    const Text('No suppliers recorded yet', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    const Text(
+                      'No suppliers recorded yet',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
                     const SizedBox(height: 6),
-                    const Text('Add paint suppliers & wholesale distributors to record inventory purchases.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text(
+                      'Add paint suppliers & wholesale distributors to record inventory purchases.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
                     const SizedBox(height: 14),
                     ElevatedButton.icon(
                       onPressed: () => _showSupplierDialog(),
                       icon: const Icon(Icons.add),
                       label: const Text('Add First Supplier'),
-                      style: ElevatedButton.styleFrom(backgroundColor: sidebarBlue, foregroundColor: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: sidebarBlue,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -484,26 +598,95 @@ class _SuppliersPageState extends State<SuppliersPage> {
                     borderRadius: BorderRadius.circular(12),
                     child: Builder(
                       builder: (context) {
-                        final isNarrow = MediaQuery.sizeOf(context).width < 1080;
+                        final isNarrow =
+                            MediaQuery.sizeOf(context).width < 1080;
                         final content = Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // HEADER
                             Container(
                               color: const Color(0xFFF8FAFC),
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 14,
+                              ),
                               child: const Row(
                                 children: [
-                                  Expanded(flex: 3, child: Text('Supplier Name', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                                  Expanded(flex: 2, child: Text('Phone', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                                  Expanded(flex: 2, child: Text('GST Number', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                                  Expanded(flex: 3, child: Text('Email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                                  Expanded(flex: 3, child: Text('Address', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
-                                  SizedBox(width: 90, child: Text('Actions', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13))),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Supplier Name',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Phone',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'GST Number',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Email',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Address',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 90,
+                                    child: Text(
+                                      'Actions',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
-                            const Divider(height: 1, thickness: 1, color: Color(0xFFE5E7EB)),
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFE5E7EB),
+                            ),
 
                             // ROWS
                             ...List.generate(_filteredSuppliers.length, (idx) {
@@ -513,11 +696,17 @@ class _SuppliersPageState extends State<SuppliersPage> {
                                   color: Colors.white,
                                   border: Border(
                                     bottom: BorderSide(
-                                      color: idx == _filteredSuppliers.length - 1 ? Colors.transparent : const Color(0xFFF3F4F6),
+                                      color:
+                                          idx == _filteredSuppliers.length - 1
+                                          ? Colors.transparent
+                                          : const Color(0xFFF3F4F6),
                                     ),
                                   ),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 14,
+                                ),
                                 child: Row(
                                   children: [
                                     // Name
@@ -527,17 +716,30 @@ class _SuppliersPageState extends State<SuppliersPage> {
                                         children: [
                                           CircleAvatar(
                                             radius: 14,
-                                            backgroundColor: const Color(0xFFFEF3C7),
+                                            backgroundColor: const Color(
+                                              0xFFFEF3C7,
+                                            ),
                                             child: Text(
-                                              (s['name'] ?? 'S').toString().substring(0, 1).toUpperCase(),
-                                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                                              (s['name'] ?? 'S')
+                                                  .toString()
+                                                  .substring(0, 1)
+                                                  .toUpperCase(),
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFD97706),
+                                              ),
                                             ),
                                           ),
                                           const SizedBox(width: 10),
                                           Flexible(
                                             child: Text(
                                               s['name'] ?? '-',
-                                              style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, fontSize: 13),
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black,
+                                                fontSize: 13,
+                                              ),
                                               overflow: TextOverflow.ellipsis,
                                             ),
                                           ),
@@ -547,37 +749,75 @@ class _SuppliersPageState extends State<SuppliersPage> {
                                     // Phone
                                     Expanded(
                                       flex: 2,
-                                      child: Text(s['phone'] ?? '-', style: const TextStyle(color: Colors.black87, fontSize: 13)),
+                                      child: Text(
+                                        s['phone'] ?? '-',
+                                        style: const TextStyle(
+                                          color: Colors.black87,
+                                          fontSize: 13,
+                                        ),
+                                      ),
                                     ),
                                     // GST
                                     Expanded(
                                       flex: 2,
-                                      child: Text(s['gst_number'] ?? '-', style: const TextStyle(color: Color(0xFF4B5563), fontSize: 12)),
+                                      child: Text(
+                                        s['gst_number'] ?? '-',
+                                        style: const TextStyle(
+                                          color: Color(0xFF4B5563),
+                                          fontSize: 12,
+                                        ),
+                                      ),
                                     ),
                                     // Email
                                     Expanded(
                                       flex: 3,
-                                      child: Text(s['email'] ?? '-', style: const TextStyle(color: Color(0xFF4B5563), fontSize: 13), overflow: TextOverflow.ellipsis),
+                                      child: Text(
+                                        s['email'] ?? '-',
+                                        style: const TextStyle(
+                                          color: Color(0xFF4B5563),
+                                          fontSize: 13,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                     // Address
                                     Expanded(
                                       flex: 3,
-                                      child: Text(s['address'] ?? '-', style: const TextStyle(color: Color(0xFF4B5563), fontSize: 12), overflow: TextOverflow.ellipsis),
+                                      child: Text(
+                                        s['address'] ?? '-',
+                                        style: const TextStyle(
+                                          color: Color(0xFF4B5563),
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                     ),
                                     // Actions
                                     SizedBox(
                                       width: 90,
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           IconButton(
                                             tooltip: 'Edit',
-                                            icon: const Icon(Icons.edit_outlined, size: 16, color: sidebarBlue),
-                                            onPressed: () => _showSupplierDialog(supplier: s),
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              size: 16,
+                                              color: sidebarBlue,
+                                            ),
+                                            onPressed: () =>
+                                                _showSupplierDialog(
+                                                  supplier: s,
+                                                ),
                                           ),
                                           IconButton(
                                             tooltip: 'Delete',
-                                            icon: const Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                                            icon: const Icon(
+                                              Icons.delete_outline,
+                                              size: 16,
+                                              color: Colors.red,
+                                            ),
                                             onPressed: () => _deleteSupplier(s),
                                           ),
                                         ],
@@ -590,21 +830,34 @@ class _SuppliersPageState extends State<SuppliersPage> {
 
                             // FOOTER
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
                               decoration: const BoxDecoration(
                                 color: Color(0xFFF9FAFB),
-                                border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+                                border: Border(
+                                  top: BorderSide(color: Color(0xFFE5E7EB)),
+                                ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
                                     'Showing ${_filteredSuppliers.length} of ${_suppliers.length} suppliers',
-                                    style: const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF6B7280),
+                                    ),
                                   ),
                                   Text(
                                     'Total Registered: ${_suppliers.length}',
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.black),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
                                   ),
                                 ],
                               ),
