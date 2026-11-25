@@ -4,6 +4,7 @@ import 'app_date_picker.dart';
 import 'api_service.dart';
 import 'app_toast.dart';
 import 'slip_downloader.dart';
+import 'app_input_formatters.dart';
 
 class SalesPage extends StatefulWidget {
   final String token;
@@ -315,6 +316,7 @@ class _SalesPageState extends State<SalesPage> {
                         child: TextField(
                           controller: qtyCtrl,
                           keyboardType: TextInputType.number,
+                          inputFormatters: const [NoLeadingSpaceFormatter()],
                           onChanged: (_) => setDState(() {}),
                           decoration: const InputDecoration(
                             labelText: 'Quantity',
@@ -958,6 +960,7 @@ class _SalesPageState extends State<SalesPage> {
                 TextField(
                   controller: notesCtrl,
                   maxLines: 2,
+                  inputFormatters: const [NoLeadingSpaceFormatter()],
                   decoration: InputDecoration(
                     hintText: 'Add invoice notes or terms...',
                     hintStyle: const TextStyle(
@@ -1215,6 +1218,7 @@ class _SalesPageState extends State<SalesPage> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: const [NoLeadingSpaceFormatter()],
                   decoration: InputDecoration(
                     prefixText: '₹ ',
                     prefixStyle: const TextStyle(
@@ -1294,6 +1298,7 @@ class _SalesPageState extends State<SalesPage> {
                 const SizedBox(height: 6),
                 TextField(
                   controller: refCtrl,
+                  inputFormatters: const [NoLeadingSpaceFormatter()],
                   decoration: InputDecoration(
                     hintText: 'e.g. UPI Ref / Cheque No / Txn ID',
                     hintStyle: const TextStyle(
@@ -1326,6 +1331,7 @@ class _SalesPageState extends State<SalesPage> {
                 const SizedBox(height: 6),
                 TextField(
                   controller: notesCtrl,
+                  inputFormatters: const [NoLeadingSpaceFormatter()],
                   decoration: InputDecoration(
                     hintText: 'Additional remarks...',
                     hintStyle: const TextStyle(
@@ -2590,6 +2596,7 @@ class _SalesPageState extends State<SalesPage> {
                     height: 40,
                     child: TextField(
                       controller: _searchCtrl,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
                       onChanged: (val) => setState(() => _searchQuery = val),
                       style: const TextStyle(color: navyDark, fontSize: 13),
                       decoration: InputDecoration(

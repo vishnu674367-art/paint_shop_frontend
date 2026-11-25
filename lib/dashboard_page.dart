@@ -17,6 +17,7 @@ import 'reports_page.dart';
 import 'users_page.dart';
 import 'settings_page.dart';
 import 'app_toast.dart';
+import 'app_input_formatters.dart';
 
 class DashboardPage extends StatefulWidget {
   final String token;
@@ -200,6 +201,14 @@ class _DashboardPageState extends State<DashboardPage> {
 
   int selectedIndex = 0;
   int _salesChartType = 0; // 0 = Bar Chart, 1 = Trend Line
+  final TextEditingController _billingCatalogSearchCtrl =
+      TextEditingController();
+
+  @override
+  void dispose() {
+    _billingCatalogSearchCtrl.dispose();
+    super.dispose();
+  }
 
   bool _isDashboardLoading = true;
   String? _dashboardError;
@@ -386,7 +395,11 @@ class _DashboardPageState extends State<DashboardPage> {
       case 0:
         return _buildDashboardContent();
       case 1:
-        return BillingPage(token: widget.token, apiBaseUrl: _apiBaseUrl);
+        return BillingPage(
+          token: widget.token,
+          apiBaseUrl: _apiBaseUrl,
+          catalogSearchCtrl: _billingCatalogSearchCtrl,
+        );
       case 2:
         return SalesPage(token: widget.token, apiBaseUrl: _apiBaseUrl);
       case 3:
@@ -802,33 +815,109 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
             const SizedBox(width: 4),
           ],
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  menuItems[selectedIndex],
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: isTiny ? 15.5 : 18,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.black,
-                  ),
+          // LEFT: TITLE & DATE
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                menuItems[selectedIndex],
+                style: TextStyle(
+                  fontSize: isTiny ? 15.5 : 18,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
                 ),
-                Text(
-                  dateStr,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: isTiny ? 10 : 11,
-                    color: const Color(0xFF6B7280),
-                  ),
+              ),
+              Text(
+                dateStr,
+                style: TextStyle(
+                  fontSize: isTiny ? 10 : 11,
+                  color: const Color(0xFF6B7280),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+
+          // CENTER: BILLING PRODUCT SEARCH BAR (ONLY ON BILLING PAGE: selectedIndex == 1)
+          if (selectedIndex == 1)
+            Expanded(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 580),
+                  child: SizedBox(
+                    height: 44,
+                    child: TextField(
+                      controller: _billingCatalogSearchCtrl,
+                      textAlignVertical: TextAlignVertical.center,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0F172A),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                      decoration: InputDecoration(
+                        hintText:
+                            'Search products by name, code, shade or ID...',
+                        hintStyle: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.normal,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          size: 21,
+                          color: Color(0xFF1E40AF),
+                        ),
+                        suffixIcon: _billingCatalogSearchCtrl.text.isNotEmpty
+                            ? InkWell(
+                                onTap: () {
+                                  _billingCatalogSearchCtrl.clear();
+                                  setState(() {});
+                                },
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 18,
+                                  color: Color(0xFF64748B),
+                                ),
+                              )
+                            : null,
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 14,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFCBD5E1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF1E40AF),
+                            width: 1.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          else
+            const Spacer(),
           const SizedBox(width: 6),
           // Notification Bell Logo Button
           InkWell(

@@ -1,10 +1,12 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'app_toast.dart';
 import 'dashboard_page.dart';
+import 'app_input_formatters.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -16,6 +18,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _passwordFocusNode = FocusNode();
 
   bool _obscurePassword = true;
   bool _rememberMe = true;
@@ -33,18 +36,28 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
-    final username = _usernameController.text.trim();
+    final username = _usernameController.text;
     final password = _passwordController.text;
 
     if (username.isEmpty) {
       AppToast.showWarning(
         context,
-        title: 'Invalid username',
+        title: 'Invalid Username',
         message: 'Please enter your username.',
+      );
+      return;
+    }
+
+    if (username.contains(' ')) {
+      AppToast.showWarning(
+        context,
+        title: 'Invalid Username',
+        message: 'Username cannot contain spaces. Enter exact username.',
       );
       return;
     }
@@ -573,8 +586,14 @@ class _LoginPageState extends State<LoginPage> {
           controller: _usernameController,
           hintText: 'Username',
           prefixIcon: Icons.person_rounded,
+          textInputAction: TextInputAction.next,
           keyboardType: TextInputType.text,
-          onSubmitted: (_) => _login(),
+          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+          autocorrect: false,
+          enableSuggestions: false,
+          onSubmitted: (_) {
+            FocusScope.of(context).requestFocus(_passwordFocusNode);
+          },
         ),
 
         const SizedBox(height: 14),
@@ -582,6 +601,8 @@ class _LoginPageState extends State<LoginPage> {
         // PASSWORD FIELD
         _buildSplitIconField(
           controller: _passwordController,
+          focusNode: _passwordFocusNode,
+          textInputAction: TextInputAction.done,
           hintText: 'Password',
           prefixIcon: Icons.lock_rounded,
           obscureText: _obscurePassword,
@@ -705,7 +726,12 @@ class _LoginPageState extends State<LoginPage> {
     TextInputType? keyboardType,
     bool obscureText = false,
     Widget? suffixIcon,
+    FocusNode? focusNode,
+    TextInputAction? textInputAction,
     ValueChanged<String>? onSubmitted,
+    List<TextInputFormatter>? inputFormatters,
+    bool autocorrect = true,
+    bool enableSuggestions = true,
   }) {
     return Container(
       height: 46,
@@ -724,9 +750,17 @@ class _LoginPageState extends State<LoginPage> {
           Expanded(
             child: TextField(
               controller: controller,
+              focusNode: focusNode,
+              textInputAction: textInputAction,
               keyboardType: keyboardType,
               obscureText: obscureText,
               onSubmitted: onSubmitted,
+              inputFormatters: [
+                const NoLeadingSpaceFormatter(),
+                ...?inputFormatters,
+              ],
+              autocorrect: autocorrect,
+              enableSuggestions: enableSuggestions,
               textAlignVertical: TextAlignVertical.center,
               style: const TextStyle(
                 color: Color(0xFF0F172A),

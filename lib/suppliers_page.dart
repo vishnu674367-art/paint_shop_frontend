@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_toast.dart';
 import 'responsive_ui.dart';
 import 'api_service.dart';
+import 'app_input_formatters.dart';
 
 class SuppliersPage extends StatefulWidget {
   final String token;
@@ -152,6 +153,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
             children: [
               TextField(
                 controller: nameCtrl,
+                inputFormatters: const [NoLeadingSpaceFormatter()],
                 decoration: const InputDecoration(
                   labelText: 'Supplier / Company Name *',
                   hintText: 'Enter supplier / company name',
@@ -165,9 +167,10 @@ class _SuppliersPageState extends State<SuppliersPage> {
                     child: TextField(
                       controller: phoneCtrl,
                       keyboardType: TextInputType.phone,
+                      inputFormatters: const [PhoneNumberFormatter()],
                       decoration: const InputDecoration(
                         labelText: 'Contact Phone',
-                        hintText: '+91 98765 43210',
+                        hintText: '10-digit mobile number',
                         prefixIcon: Icon(Icons.phone_rounded, size: 18),
                       ),
                     ),
@@ -176,6 +179,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
                   Expanded(
                     child: TextField(
                       controller: gstCtrl,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
                       decoration: const InputDecoration(
                         labelText: 'GSTIN Number',
                         hintText: '33AAAAA0000A1Z5',
@@ -189,6 +193,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
               TextField(
                 controller: emailCtrl,
                 keyboardType: TextInputType.emailAddress,
+                inputFormatters: const [NoLeadingSpaceFormatter()],
                 decoration: const InputDecoration(
                   labelText: 'Supplier Email',
                   hintText: 'vendor@paintcompany.com',
@@ -199,6 +204,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
               TextField(
                 controller: addressCtrl,
                 maxLines: 2,
+                inputFormatters: const [NoLeadingSpaceFormatter()],
                 decoration: const InputDecoration(
                   labelText: 'Warehouse / Supply Office Address',
                   hintText: 'Unit 4, Industrial Estate, Chennai, TN',
@@ -232,10 +238,12 @@ class _SuppliersPageState extends State<SuppliersPage> {
               }
 
               final phone = phoneCtrl.text.trim();
-              if (phone.isNotEmpty && !RegExp(r"^\d{10}$").hasMatch(phone)) {
+              if (phone.isNotEmpty &&
+                  (phone.length != 10 ||
+                      RegExp(r"^(\d)\1{9}$").hasMatch(phone))) {
                 AppToast.showWarning(
                   context,
-                  title: 'Invalid Phone Number',
+                  title: 'Invalid Mobile Number',
                   message: 'Please enter a valid 10-digit mobile number.',
                 );
                 return;
@@ -412,6 +420,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
                   final compact = MediaQuery.sizeOf(context).width < 700;
                   final searchBox = TextField(
                     onChanged: (val) => setState(() => _searchQuery = val),
+                    inputFormatters: const [NoLeadingSpaceFormatter()],
                     style: const TextStyle(color: Colors.black, fontSize: 13),
                     decoration: InputDecoration(
                       hintText:

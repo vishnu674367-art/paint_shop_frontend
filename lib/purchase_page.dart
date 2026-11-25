@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_toast.dart';
 import 'app_date_picker.dart';
 import 'api_service.dart';
+import 'app_input_formatters.dart';
 
 class PurchasePage extends StatefulWidget {
   final String token;
@@ -250,6 +252,22 @@ class _PurchasePageState extends State<PurchasePage> {
     return '${parsed.day.toString().padLeft(2, '0')} ${months[(parsed.month - 1) % 12]} ${parsed.year}';
   }
 
+  IconData _getPaymentMethodIcon(String method) {
+    switch (method) {
+      case 'BANK':
+        return Icons.account_balance_rounded;
+      case 'UPI':
+        return Icons.qr_code_rounded;
+      case 'CARD':
+        return Icons.credit_card_rounded;
+      case 'CHEQUE':
+        return Icons.badge_rounded;
+      case 'CASH':
+      default:
+        return Icons.payments_rounded;
+    }
+  }
+
   void _showNewPurchaseDialog() {
     final supplierIdCtrl = TextEditingController();
     final supplierNameCtrl = TextEditingController();
@@ -260,6 +278,8 @@ class _PurchasePageState extends State<PurchasePage> {
     final prodQtyCtrl = TextEditingController(text: '1');
     final prodCostCtrl = TextEditingController();
     final amountPaidCtrl = TextEditingController(text: '0');
+    final paymentRefCtrl = TextEditingController();
+    final paymentDetail1Ctrl = TextEditingController();
 
     int? selectedSupplierId;
     int? selectedProductId;
@@ -331,6 +351,31 @@ class _PurchasePageState extends State<PurchasePage> {
             required Widget child,
             bool isRequired = false,
           }) {
+            Widget formattedChild = child;
+            if (child is TextField) {
+              formattedChild = TextField(
+                controller: child.controller,
+                focusNode: child.focusNode,
+                decoration: child.decoration,
+                keyboardType: child.keyboardType,
+                textInputAction: child.textInputAction,
+                textCapitalization: child.textCapitalization,
+                style: child.style,
+                readOnly: child.readOnly,
+                autofocus: child.autofocus,
+                obscureText: child.obscureText,
+                maxLines: child.maxLines,
+                minLines: child.minLines,
+                onChanged: child.onChanged,
+                onTap: child.onTap,
+                onSubmitted: child.onSubmitted,
+                inputFormatters: [
+                  const NoLeadingSpaceFormatter(),
+                  ...?child.inputFormatters,
+                ],
+                enabled: child.enabled,
+              );
+            }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -357,7 +402,7 @@ class _PurchasePageState extends State<PurchasePage> {
                   ],
                 ),
                 const SizedBox(height: 5),
-                child,
+                formattedChild,
               ],
             );
           }
@@ -620,8 +665,9 @@ class _PurchasePageState extends State<PurchasePage> {
                               child: TextField(
                                 controller: supplierMobileCtrl,
                                 keyboardType: TextInputType.phone,
+                                inputFormatters: const [PhoneNumberFormatter()],
                                 decoration: inputDec(
-                                  hint: 'Enter mobile number',
+                                  hint: 'Enter 10-digit mobile number',
                                   prefixIcon: const Icon(
                                     Icons.phone_outlined,
                                     size: 18,
@@ -833,8 +879,11 @@ class _PurchasePageState extends State<PurchasePage> {
                                     child: TextField(
                                       controller: supplierMobileCtrl,
                                       keyboardType: TextInputType.phone,
+                                      inputFormatters: const [
+                                        PhoneNumberFormatter(),
+                                      ],
                                       decoration: inputDec(
-                                        hint: 'Mobile number',
+                                        hint: '10-digit mobile number',
                                         prefixIcon: const Icon(
                                           Icons.phone_outlined,
                                           size: 18,
@@ -1701,6 +1750,239 @@ class _PurchasePageState extends State<PurchasePage> {
                               ),
                             ],
                           ),
+
+                          // DYNAMIC PAYMENT DETAILS FIELDS (BASED ON SELECTED PAYMENT METHOD)
+                          if (amountPaid > 0) ...[
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFFCBD5E1),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        _getPaymentMethodIcon(paymentMethod),
+                                        size: 16,
+                                        color: sidebarBlue,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '$paymentMethod Payment Details',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: navyDark,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 10),
+                                  if (paymentMethod == 'BANK') ...[
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'Bank Name & Branch',
+                                            child: TextField(
+                                              controller: paymentDetail1Ctrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. HDFC Bank - Main Branch',
+                                                prefixIcon: const Icon(
+                                                  Icons.account_balance_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'Transaction / UTR #',
+                                            child: TextField(
+                                              controller: paymentRefCtrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint:
+                                                    'e.g. NEFT / UTR # 4281920',
+                                                prefixIcon: const Icon(
+                                                  Icons.receipt_long_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ] else if (paymentMethod == 'UPI') ...[
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'UPI App / VPA ID',
+                                            child: TextField(
+                                              controller: paymentDetail1Ctrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. GPay / PhonePe / Paytm',
+                                                prefixIcon: const Icon(
+                                                  Icons.qr_code_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'UPI Ref / UTR #',
+                                            child: TextField(
+                                              controller: paymentRefCtrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. UTR # 20481920',
+                                                prefixIcon: const Icon(
+                                                  Icons.numbers_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ] else if (paymentMethod == 'CARD') ...[
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'Card Last 4 Digits',
+                                            child: TextField(
+                                              controller: paymentDetail1Ctrl,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              inputFormatters: [
+                                                FilteringTextInputFormatter
+                                                    .digitsOnly,
+                                                LengthLimitingTextInputFormatter(
+                                                  4,
+                                                ),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. 4321',
+                                                prefixIcon: const Icon(
+                                                  Icons.credit_card_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'Approval / Auth Code',
+                                            child: TextField(
+                                              controller: paymentRefCtrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. AUTH-89201',
+                                                prefixIcon: const Icon(
+                                                  Icons.lock_clock_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ] else if (paymentMethod == 'CHEQUE') ...[
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'Cheque Number',
+                                            child: TextField(
+                                              controller: paymentDetail1Ctrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. CHQ-000421',
+                                                prefixIcon: const Icon(
+                                                  Icons.badge_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: fieldBox(
+                                            label: 'Issuing Bank & Date',
+                                            child: TextField(
+                                              controller: paymentRefCtrl,
+                                              inputFormatters: const [
+                                                NoLeadingSpaceFormatter(),
+                                              ],
+                                              decoration: inputDec(
+                                                hint: 'e.g. SBI - 24/11/2026',
+                                                prefixIcon: const Icon(
+                                                  Icons
+                                                      .account_balance_wallet_rounded,
+                                                  size: 17,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ] else ...[
+                                    fieldBox(
+                                      label: 'Cash Payment Remarks',
+                                      child: TextField(
+                                        controller: paymentRefCtrl,
+                                        inputFormatters: const [
+                                          NoLeadingSpaceFormatter(),
+                                        ],
+                                        decoration: inputDec(
+                                          hint: 'e.g. Cash paid directly to supplier',
+                                          prefixIcon: const Icon(
+                                            Icons.payments_rounded,
+                                            size: 17,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 14),
 
                           // 3-Card Summary Container
@@ -2033,6 +2315,25 @@ class _PurchasePageState extends State<PurchasePage> {
                                     final purchaseNo =
                                         'PO-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch.toString().substring(7)}';
 
+                                    final List<String> notesParts = [
+                                      'Paid: ${_currency(amountPaid)} via $paymentMethod',
+                                    ];
+                                    if (paymentRefCtrl.text.trim().isNotEmpty) {
+                                      notesParts.add(
+                                        'Ref/Txn: ${paymentRefCtrl.text.trim()}',
+                                      );
+                                    }
+                                    if (paymentDetail1Ctrl.text
+                                        .trim()
+                                        .isNotEmpty) {
+                                      notesParts.add(
+                                        'Details: ${paymentDetail1Ctrl.text.trim()}',
+                                      );
+                                    }
+                                    notesParts.add(
+                                      'Balance Due: ${_currency(balanceDue)}',
+                                    );
+
                                     await _api.post('/purchases', {
                                       'purchase_no': purchaseNo,
                                       'supplier_id': supplierId,
@@ -2040,8 +2341,10 @@ class _PurchasePageState extends State<PurchasePage> {
                                       'purchase_date': now
                                           .toIso8601String()
                                           .substring(0, 10),
-                                      'notes':
-                                          'Paid: ${_currency(amountPaid)} via $paymentMethod | Balance Due: ${_currency(balanceDue)}',
+                                      if (paymentRefCtrl.text.trim().isNotEmpty)
+                                        'reference_no': paymentRefCtrl.text
+                                            .trim(),
+                                      'notes': notesParts.join(' | '),
                                       'items': resolvedItems,
                                     });
 
@@ -2411,6 +2714,7 @@ class _PurchasePageState extends State<PurchasePage> {
                     height: 40,
                     child: TextField(
                       controller: _searchCtrl,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
                       onChanged: (val) => setState(() => _searchQuery = val),
                       style: const TextStyle(color: navyDark, fontSize: 13),
                       decoration: InputDecoration(

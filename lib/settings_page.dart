@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import 'api_service.dart';
+import 'app_input_formatters.dart';
 
 class SettingsPage extends StatefulWidget {
   final String token;
@@ -65,12 +68,15 @@ class _SettingsPageState extends State<SettingsPage> {
       _shopNameCtrl.text = data['shop_name']?.toString() ?? 'My Paint Shop';
       _phoneCtrl.text = data['phone']?.toString() ?? '9876543210';
       _emailCtrl.text = data['email']?.toString() ?? 'admin@gmail.com';
-      _addressCtrl.text = data['address']?.toString() ?? '123 Main Road, Paint Market, Tamil Nadu';
+      _addressCtrl.text =
+          data['address']?.toString() ??
+          '123 Main Road, Paint Market, Tamil Nadu';
       _gstCtrl.text = data['gst_number']?.toString() ?? '33AAAAA0000A1Z5';
       final savedCurrency = data['currency']?.toString().trim() ?? '';
-      _currencyCtrl.text = (savedCurrency.isEmpty || savedCurrency == '#') ? '₹' : savedCurrency;
-      _invoiceFooterCtrl.text = data['invoice_footer']?.toString() ??
-          'Thank you for choosing ColorCraft! Quality paint & colors for your dream home.';
+      _currencyCtrl.text = (savedCurrency.isEmpty || savedCurrency == '#')
+          ? '₹'
+          : savedCurrency;
+      _invoiceFooterCtrl.text = data['invoice_footer']?.toString() ?? 'Thank you for choosing ColorCraft! Quality paint & colors for your dream home.';
 
       setState(() => _isLoading = false);
     } catch (_) {
@@ -81,8 +87,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _addressCtrl.text = '123 Main Road, Paint Market, Tamil Nadu';
       _gstCtrl.text = '33AAAAA0000A1Z5';
       _currencyCtrl.text = '₹';
-      _invoiceFooterCtrl.text =
-          'Thank you for choosing ColorCraft! Quality paint & colors for your dream home.';
+      _invoiceFooterCtrl.text = 'Thank you for choosing ColorCraft! Quality paint & colors for your dream home.';
       setState(() => _isLoading = false);
     }
   }
@@ -99,7 +104,9 @@ class _SettingsPageState extends State<SettingsPage> {
       return;
     }
 
-    final currency = _currencyCtrl.text.trim().isEmpty ? '₹' : _currencyCtrl.text.trim();
+    final currency = _currencyCtrl.text.trim().isEmpty
+        ? '₹'
+        : _currencyCtrl.text.trim();
     _currencyCtrl.text = currency;
 
     setState(() => _isSaving = true);
@@ -114,7 +121,7 @@ class _SettingsPageState extends State<SettingsPage> {
           'gst_number': _gstCtrl.text.trim(),
           'currency': currency,
           'invoice_footer': _invoiceFooterCtrl.text.trim(),
-        }
+        },
       };
 
       await _api.put('/settings', payload);
@@ -140,7 +147,9 @@ class _SettingsPageState extends State<SettingsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error saving: ${e.toString().replaceAll('Exception: ', '')}'),
+          content: Text(
+            'Error saving: ${e.toString().replaceAll('Exception: ', '')}',
+          ),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
         ),
@@ -201,8 +210,12 @@ class _SettingsPageState extends State<SettingsPage> {
         final cards = [
           _buildStatusTile(
             title: 'Shop Identity',
-            value: _shopNameCtrl.text.isNotEmpty ? _shopNameCtrl.text : 'My Paint Shop',
-            subtitle: _gstCtrl.text.isNotEmpty ? 'GST: ${_gstCtrl.text}' : 'GST Registered',
+            value: _shopNameCtrl.text.isNotEmpty
+                ? _shopNameCtrl.text
+                : 'My Paint Shop',
+            subtitle: _gstCtrl.text.isNotEmpty
+                ? 'GST: ${_gstCtrl.text}'
+                : 'GST Registered',
             icon: Icons.storefront_rounded,
             iconBg: const Color(0xFFEFF6FF),
             iconColor: primaryBlue,
@@ -217,7 +230,9 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
           _buildStatusTile(
             title: 'Support Email',
-            value: _emailCtrl.text.isNotEmpty ? _emailCtrl.text : 'admin@gmail.com',
+            value: _emailCtrl.text.isNotEmpty
+                ? _emailCtrl.text
+                : 'admin@gmail.com',
             subtitle: 'Invoicing & Customer Help',
             icon: Icons.email_rounded,
             iconBg: const Color(0xFFF3E8FF),
@@ -236,7 +251,9 @@ class _SettingsPageState extends State<SettingsPage> {
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: cards.map((c) => SizedBox(width: cardWidth, child: c)).toList(),
+          children: cards
+              .map((c) => SizedBox(width: cardWidth, child: c))
+              .toList(),
         );
       },
     );
@@ -337,7 +354,11 @@ class _SettingsPageState extends State<SettingsPage> {
                       color: const Color(0xFFEFF6FF),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.store_rounded, color: primaryBlue, size: 20),
+                    child: const Icon(
+                      Icons.store_rounded,
+                      color: primaryBlue,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -369,19 +390,30 @@ class _SettingsPageState extends State<SettingsPage> {
                     ? const SizedBox(
                         width: 15,
                         height: 15,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Icon(Icons.save_rounded, size: 16),
                 label: Text(
                   _isSaving ? 'Saving...' : 'Save Settings',
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: primaryBlue,
                   foregroundColor: Colors.white,
                   elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
               );
 
@@ -434,6 +466,7 @@ class _SettingsPageState extends State<SettingsPage> {
                       label: 'Contact Phone Number',
                       hint: '9876543210',
                       icon: Icons.phone_rounded,
+                      inputFormatters: const [PhoneNumberFormatter()],
                     ),
                     const SizedBox(height: 14),
                     _buildTextField(
@@ -556,10 +589,16 @@ class _SettingsPageState extends State<SettingsPage> {
     required String label,
     required String hint,
     required IconData icon,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
-      style: const TextStyle(color: navy, fontSize: 13, fontWeight: FontWeight.w500),
+      inputFormatters: [const NoLeadingSpaceFormatter(), ...?inputFormatters],
+      style: const TextStyle(
+        color: navy,
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         labelText: label,
         labelStyle: const TextStyle(color: Color(0xFF4B5563), fontSize: 13),
@@ -569,7 +608,10 @@ class _SettingsPageState extends State<SettingsPage> {
         filled: true,
         fillColor: const Color(0xFFF9FAFB),
         isDense: true,
-        contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 12,
+          horizontal: 12,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: cardBorder),

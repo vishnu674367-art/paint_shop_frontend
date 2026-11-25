@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'app_toast.dart';
 import 'responsive_ui.dart';
 import 'api_service.dart';
+import 'app_input_formatters.dart';
 
 class UsersPage extends StatefulWidget {
   final String token;
@@ -1685,6 +1686,12 @@ class _UsersPageState extends State<UsersPage> {
           controller: controller,
           keyboardType: keyboardType,
           obscureText: obscureText,
+          inputFormatters: [
+            if (keyboardType == TextInputType.phone)
+              const PhoneNumberFormatter()
+            else
+              const NoLeadingSpaceFormatter(),
+          ],
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -2073,6 +2080,7 @@ class _UsersPageState extends State<UsersPage> {
                   final compact = MediaQuery.sizeOf(context).width < 720;
                   final searchBox = TextField(
                     onChanged: (val) => setState(() => _searchQuery = val),
+                    inputFormatters: const [NoLeadingSpaceFormatter()],
                     style: const TextStyle(color: Colors.black, fontSize: 13),
                     decoration: InputDecoration(
                       hintText: 'Search users by name, email, or role...',

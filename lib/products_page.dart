@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'app_toast.dart';
 import 'api_service.dart';
 import 'image_picker_helper.dart';
 import 'product_image_widget.dart';
 import 'slip_downloader.dart';
+import 'app_input_formatters.dart';
 
 class ProductsPage extends StatefulWidget {
   final String token;
@@ -96,7 +98,8 @@ class _ProductsPageState extends State<ProductsPage> {
       final query = _searchQuery.trim().toLowerCase();
       final bQuery = _barcodeQuery.trim().toLowerCase();
 
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           name.contains(query) ||
           sku.contains(query) ||
           id.contains(query) ||
@@ -108,7 +111,8 @@ class _ProductsPageState extends State<ProductsPage> {
 
       final matchesBarcode = bQuery.isEmpty || sku.contains(bQuery);
 
-      final matchesCategory = _selectedCategoryFilter == 'All' ||
+      final matchesCategory =
+          _selectedCategoryFilter == 'All' ||
           (item['category_id']?.toString() == _selectedCategoryFilter);
 
       final stock = (item['stock_qty'] is num)
@@ -155,7 +159,8 @@ class _ProductsPageState extends State<ProductsPage> {
     final cid = p['category_id'];
     if (cid == null) return '-';
     for (final c in _categories) {
-      if (c['id'] == cid) return (c['name'] ?? c['category_name'] ?? '-').toString();
+      if (c['id'] == cid)
+        return (c['name'] ?? c['category_name'] ?? '-').toString();
     }
     return '-';
   }
@@ -166,7 +171,8 @@ class _ProductsPageState extends State<ProductsPage> {
     final bid = p['brand_id'];
     if (bid == null) return '-';
     for (final b in _brands) {
-      if (b['id'] == bid) return (b['name'] ?? b['brand_name'] ?? '-').toString();
+      if (b['id'] == bid)
+        return (b['name'] ?? b['brand_name'] ?? '-').toString();
     }
     return '-';
   }
@@ -191,12 +197,15 @@ class _ProductsPageState extends State<ProductsPage> {
   void _showBarcodeDialog(dynamic product) {
     final barcode = _productBarcode(product);
     final name = (product['product_name'] ?? 'Product').toString();
-    final price = double.tryParse(product['selling_price']?.toString() ?? '0') ?? 0.0;
+    final price =
+        double.tryParse(product['selling_price']?.toString() ?? '0') ?? 0.0;
     final unit = (product['unit'] ?? 'Litre').toString();
     final brand = _brandName(product);
     final category = _categoryName(product);
-    final batchNo = 'BT-${DateTime.now().year}-${(product['id'] ?? '101').toString().padLeft(3, '0')}';
-    final pkdDate = '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}';
+    final batchNo =
+        'BT-${DateTime.now().year}-${(product['id'] ?? '101').toString().padLeft(3, '0')}';
+    final pkdDate =
+        '${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}';
 
     showDialog(
       context: context,
@@ -215,12 +224,20 @@ class _ProductsPageState extends State<ProductsPage> {
                 SizedBox(width: 8),
                 Text(
                   'Product Barcode & Price Tag',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: navyDark),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 17,
+                    color: navyDark,
+                  ),
                 ),
               ],
             ),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF64748B)),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 20,
+                color: Color(0xFF64748B),
+              ),
               onPressed: () => Navigator.pop(ctx),
             ),
           ],
@@ -237,7 +254,10 @@ class _ProductsPageState extends State<ProductsPage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF94A3B8), width: 1.5),
+                  border: Border.all(
+                    color: const Color(0xFF94A3B8),
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
@@ -253,7 +273,11 @@ class _ProductsPageState extends State<ProductsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.format_paint_rounded, color: sidebarBlue, size: 16),
+                        const Icon(
+                          Icons.format_paint_rounded,
+                          color: sidebarBlue,
+                          size: 16,
+                        ),
                         const SizedBox(width: 6),
                         Text(
                           'PAINT SHOP RETAIL',
@@ -269,7 +293,12 @@ class _ProductsPageState extends State<ProductsPage> {
                     const SizedBox(height: 2),
                     const Text(
                       'AUTHORIZED DEALER • GENUINE QUALITY',
-                      style: TextStyle(fontSize: 9.5, letterSpacing: 0.8, color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+                      style: TextStyle(
+                        fontSize: 9.5,
+                        letterSpacing: 0.8,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     const Divider(height: 1, color: Color(0xFFCBD5E1)),
@@ -290,13 +319,20 @@ class _ProductsPageState extends State<ProductsPage> {
                     const SizedBox(height: 3),
                     Text(
                       '$brand  •  $category  •  $unit',
-                      style: const TextStyle(fontSize: 11, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF64748B),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     const SizedBox(height: 12),
 
                     // VISUAL SHARP BARCODE WIDGET
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(8),
@@ -326,7 +362,10 @@ class _ProductsPageState extends State<ProductsPage> {
 
                     // PRICE CONTAINER
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 14,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(8),
@@ -339,7 +378,11 @@ class _ProductsPageState extends State<ProductsPage> {
                             children: [
                               const Text(
                                 'MRP: ',
-                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Color(0xFF475569)),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF475569),
+                                ),
                               ),
                               Text(
                                 _currency(price),
@@ -354,7 +397,10 @@ class _ProductsPageState extends State<ProductsPage> {
                           const SizedBox(height: 2),
                           const Text(
                             '(Inclusive of all taxes)',
-                            style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF64748B),
+                            ),
                           ),
                         ],
                       ),
@@ -363,8 +409,20 @@ class _ProductsPageState extends State<ProductsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Batch: $batchNo', style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
-                        Text('Pkd: $pkdDate', style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8))),
+                        Text(
+                          'Batch: $batchNo',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
+                        Text(
+                          'Pkd: $pkdDate',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Color(0xFF94A3B8),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -395,7 +453,9 @@ class _ProductsPageState extends State<ProductsPage> {
             style: OutlinedButton.styleFrom(
               foregroundColor: navyDark,
               side: const BorderSide(color: cardBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
           ElevatedButton.icon(
@@ -410,12 +470,20 @@ class _ProductsPageState extends State<ProductsPage> {
                 batchNo: batchNo,
                 pkdDate: pkdDate,
               );
-              final fileName = 'Barcode_${barcode.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
-              final ok = await downloadReceiptSlip(fileName: fileName, htmlContent: html);
+              final fileName =
+                  'Barcode_${barcode.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
+              final ok = await downloadReceiptSlip(
+                fileName: fileName,
+                htmlContent: html,
+              );
               if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
-                  content: Text(ok ? 'Barcode label downloaded & ready to print!' : 'Print label preview loaded.'),
+                  content: Text(
+                    ok
+                        ? 'Barcode label downloaded & ready to print!'
+                        : 'Print label preview loaded.',
+                  ),
                   backgroundColor: ok ? darkGreen : Colors.orange,
                 ),
               );
@@ -425,7 +493,9 @@ class _ProductsPageState extends State<ProductsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: sidebarBlue,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ],
@@ -621,24 +691,49 @@ class _ProductsPageState extends State<ProductsPage> {
   // --- Add / Edit Product Modal (with ⚡ Auto-Generate Barcode & Live Profit Calculator) ---
   void _showProductDialog({Map<String, dynamic>? product}) {
     final isEditing = product != null;
-    final nameCtrl = TextEditingController(text: product?['product_name']?.toString() ?? '');
-    final productIdCtrl = TextEditingController(text: product?['id']?.toString() ?? '');
-    final skuCtrl = TextEditingController(
-      text: product?['sku']?.toString() ?? (isEditing ? '' : _generateUniqueBarcode()),
+    final nameCtrl = TextEditingController(
+      text: product?['product_name']?.toString() ?? '',
     );
-    final shadeCodeCtrl = TextEditingController(text: product?['shade_code']?.toString() ?? '');
-    final shadeNameCtrl = TextEditingController(text: product?['shade_name']?.toString() ?? '');
-    final packSizeCtrl = TextEditingController(text: product?['pack_size']?.toString() ?? '1L');
-    final unitCtrl = TextEditingController(text: product?['unit']?.toString() ?? 'Litre');
-    final costCtrl = TextEditingController(text: product?['cost_price']?.toString() ?? '');
-    final sellingCtrl = TextEditingController(text: product?['selling_price']?.toString() ?? '');
-    final stockCtrl = TextEditingController(text: product?['stock_qty']?.toString() ?? '0');
-    final reorderCtrl = TextEditingController(text: product?['reorder_level']?.toString() ?? '5');
+    final productIdCtrl = TextEditingController(
+      text: product?['id']?.toString() ?? '',
+    );
+    final skuCtrl = TextEditingController(
+      text:
+          product?['sku']?.toString() ??
+          (isEditing ? '' : _generateUniqueBarcode()),
+    );
+    final shadeCodeCtrl = TextEditingController(
+      text: product?['shade_code']?.toString() ?? '',
+    );
+    final shadeNameCtrl = TextEditingController(
+      text: product?['shade_name']?.toString() ?? '',
+    );
+    final packSizeCtrl = TextEditingController(
+      text: product?['pack_size']?.toString() ?? '1L',
+    );
+    final unitCtrl = TextEditingController(
+      text: product?['unit']?.toString() ?? 'Litre',
+    );
+    final costCtrl = TextEditingController(
+      text: product?['cost_price']?.toString() ?? '',
+    );
+    final sellingCtrl = TextEditingController(
+      text: product?['selling_price']?.toString() ?? '',
+    );
+    final stockCtrl = TextEditingController(
+      text: product?['stock_qty']?.toString() ?? '0',
+    );
+    final reorderCtrl = TextEditingController(
+      text: product?['reorder_level']?.toString() ?? '5',
+    );
     final gstCtrl = TextEditingController(text: '18');
-    final descCtrl = TextEditingController(text: product?['description']?.toString() ?? '');
+    final descCtrl = TextEditingController(
+      text: product?['description']?.toString() ?? '',
+    );
 
     String initialCategory = '';
-    if (product?['category_name'] != null && product!['category_name'].toString().trim().isNotEmpty) {
+    if (product?['category_name'] != null &&
+        product!['category_name'].toString().trim().isNotEmpty) {
       initialCategory = product['category_name'].toString().trim();
     } else if (product?['category_id'] != null) {
       final cid = product!['category_id'];
@@ -652,7 +747,8 @@ class _ProductsPageState extends State<ProductsPage> {
     final categoryCtrl = TextEditingController(text: initialCategory);
 
     String initialBrand = '';
-    if (product?['brand_name'] != null && product!['brand_name'].toString().trim().isNotEmpty) {
+    if (product?['brand_name'] != null &&
+        product!['brand_name'].toString().trim().isNotEmpty) {
       initialBrand = product['brand_name'].toString().trim();
     } else if (product?['brand_id'] != null) {
       final bid = product!['brand_id'];
@@ -686,6 +782,31 @@ class _ProductsPageState extends State<ProductsPage> {
             required Widget child,
             bool isRequired = false,
           }) {
+            Widget formattedChild = child;
+            if (child is TextField) {
+              formattedChild = TextField(
+                controller: child.controller,
+                focusNode: child.focusNode,
+                decoration: child.decoration,
+                keyboardType: child.keyboardType,
+                textInputAction: child.textInputAction,
+                textCapitalization: child.textCapitalization,
+                style: child.style,
+                readOnly: child.readOnly,
+                autofocus: child.autofocus,
+                obscureText: child.obscureText,
+                maxLines: child.maxLines,
+                minLines: child.minLines,
+                onChanged: child.onChanged,
+                onTap: child.onTap,
+                onSubmitted: child.onSubmitted,
+                inputFormatters: [
+                  const NoLeadingSpaceFormatter(),
+                  ...?child.inputFormatters,
+                ],
+                enabled: child.enabled,
+              );
+            }
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -712,7 +833,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   ],
                 ),
                 const SizedBox(height: 5),
-                child,
+                formattedChild,
               ],
             );
           }
@@ -724,7 +845,10 @@ class _ProductsPageState extends State<ProductsPage> {
             String? prefixText,
           }) => InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+            hintStyle: const TextStyle(
+              fontSize: 12.5,
+              color: Color(0xFF94A3B8),
+            ),
             prefixIcon: prefixIcon,
             prefixText: prefixText,
             prefixStyle: const TextStyle(
@@ -736,7 +860,10 @@ class _ProductsPageState extends State<ProductsPage> {
             filled: true,
             fillColor: Colors.white,
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 11,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(9),
               borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -751,7 +878,12 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           );
 
-          Widget stepBadge(String number, String title, {Widget? badge, String? subtitle}) {
+          Widget stepBadge(
+            String number,
+            String title, {
+            Widget? badge,
+            String? subtitle,
+          }) {
             return Row(
               children: [
                 Container(
@@ -780,10 +912,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     color: navyDark,
                   ),
                 ),
-                if (badge != null) ...[
-                  const SizedBox(width: 8),
-                  badge,
-                ],
+                if (badge != null) ...[const SizedBox(width: 8), badge],
                 const Spacer(),
                 if (subtitle != null)
                   Text(
@@ -797,7 +926,8 @@ class _ProductsPageState extends State<ProductsPage> {
             );
           }
 
-          final hasImage = currentImageUrl != null && currentImageUrl!.isNotEmpty;
+          final hasImage =
+              currentImageUrl != null && currentImageUrl!.isNotEmpty;
 
           final uploadImageBox = Container(
             width: isNarrow ? double.infinity : 130,
@@ -806,7 +936,9 @@ class _ProductsPageState extends State<ProductsPage> {
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: hasImage ? sidebarBlue.withValues(alpha: 0.5) : const Color(0xFFCBD5E1),
+                color: hasImage
+                    ? sidebarBlue.withValues(alpha: 0.5)
+                    : const Color(0xFFCBD5E1),
                 width: hasImage ? 1.5 : 1,
               ),
             ),
@@ -856,18 +988,32 @@ class _ProductsPageState extends State<ProductsPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
+                                const Icon(
+                                  Icons.edit_rounded,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
                                 const SizedBox(width: 4),
                                 const Text(
                                   'Change',
-                                  style: TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
                                 InkWell(
                                   onTap: () {
-                                    setDialogState(() => currentImageUrl = null);
+                                    setDialogState(
+                                      () => currentImageUrl = null,
+                                    );
                                   },
-                                  child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
+                                  child: const Icon(
+                                    Icons.close_rounded,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),
@@ -885,16 +1031,27 @@ class _ProductsPageState extends State<ProductsPage> {
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
                         else ...[
-                          const Icon(Icons.add_a_photo_outlined, size: 28, color: sidebarBlue),
+                          const Icon(
+                            Icons.add_a_photo_outlined,
+                            size: 28,
+                            color: sidebarBlue,
+                          ),
                           const SizedBox(height: 6),
                           const Text(
                             'Upload Photo',
-                            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: sidebarBlue),
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w700,
+                              color: sidebarBlue,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           const Text(
                             'JPG, PNG supported',
-                            style: TextStyle(fontSize: 10, color: Color(0xFF64748B)),
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Color(0xFF64748B),
+                            ),
                           ),
                         ],
                       ],
@@ -904,8 +1061,13 @@ class _ProductsPageState extends State<ProductsPage> {
 
           return Dialog(
             backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 20,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 800),
               child: SingleChildScrollView(
@@ -938,7 +1100,9 @@ class _ProductsPageState extends State<ProductsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                isEditing ? 'Edit Product Details' : 'Add New Paint Product',
+                                isEditing
+                                    ? 'Edit Product Details'
+                                    : 'Add New Paint Product',
                                 style: const TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.w800,
@@ -958,8 +1122,13 @@ class _ProductsPageState extends State<ProductsPage> {
                           ),
                         ),
                         IconButton(
-                          onPressed: isSaving ? null : () => Navigator.pop(dialogCtx),
-                          icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                          onPressed: isSaving
+                              ? null
+                              : () => Navigator.pop(dialogCtx),
+                          icon: const Icon(
+                            Icons.close_rounded,
+                            color: Color(0xFF64748B),
+                          ),
                           tooltip: 'Close',
                         ),
                       ],
@@ -986,17 +1155,30 @@ class _ProductsPageState extends State<ProductsPage> {
                                     controller: skuCtrl,
                                     decoration: inputDec(
                                       hint: 'Barcode / SKU',
-                                      prefixIcon: const Icon(Icons.qr_code_2_rounded, size: 18, color: sidebarBlue),
+                                      prefixIcon: const Icon(
+                                        Icons.qr_code_2_rounded,
+                                        size: 18,
+                                        color: sidebarBlue,
+                                      ),
                                       suffixIcon: TextButton.icon(
                                         onPressed: () {
                                           setDialogState(() {
-                                            skuCtrl.text = _generateUniqueBarcode();
+                                            skuCtrl.text =
+                                                _generateUniqueBarcode();
                                           });
                                         },
-                                        icon: const Icon(Icons.bolt_rounded, size: 16, color: sidebarBlue),
+                                        icon: const Icon(
+                                          Icons.bolt_rounded,
+                                          size: 16,
+                                          color: sidebarBlue,
+                                        ),
                                         label: const Text(
                                           'Generate',
-                                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: sidebarBlue),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
+                                            color: sidebarBlue,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -1023,33 +1205,66 @@ class _ProductsPageState extends State<ProductsPage> {
                                                 controller: skuCtrl,
                                                 decoration: inputDec(
                                                   hint: 'Scan or enter barcode',
-                                                  prefixIcon: const Icon(Icons.qr_code_2_rounded, size: 18, color: sidebarBlue),
+                                                  prefixIcon: const Icon(
+                                                    Icons.qr_code_2_rounded,
+                                                    size: 18,
+                                                    color: sidebarBlue,
+                                                  ),
                                                   suffixIcon: InkWell(
                                                     onTap: () {
                                                       setDialogState(() {
-                                                        skuCtrl.text = _generateUniqueBarcode();
+                                                        skuCtrl.text =
+                                                            _generateUniqueBarcode();
                                                       });
                                                     },
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          6,
+                                                        ),
                                                     child: Container(
-                                                      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-                                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                      margin:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 6,
+                                                            vertical: 6,
+                                                          ),
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
                                                       decoration: BoxDecoration(
-                                                        color: const Color(0xFFEFF6FF),
-                                                        borderRadius: BorderRadius.circular(6),
-                                                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                                                        color: const Color(
+                                                          0xFFEFF6FF,
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              6,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: const Color(
+                                                            0xFFBFDBFE,
+                                                          ),
+                                                        ),
                                                       ),
                                                       child: const Row(
-                                                        mainAxisSize: MainAxisSize.min,
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
                                                         children: [
-                                                          Icon(Icons.bolt_rounded, size: 14, color: sidebarBlue),
+                                                          Icon(
+                                                            Icons.bolt_rounded,
+                                                            size: 14,
+                                                            color: sidebarBlue,
+                                                          ),
                                                           SizedBox(width: 2),
                                                           Text(
                                                             'Generate',
                                                             style: TextStyle(
                                                               fontSize: 11,
-                                                              fontWeight: FontWeight.bold,
-                                                              color: sidebarBlue,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  sidebarBlue,
                                                             ),
                                                           ),
                                                         ],
@@ -1070,7 +1285,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                                 readOnly: isEditing,
                                                 decoration: inputDec(
                                                   hint: 'Auto',
-                                                  prefixIcon: const Icon(Icons.tag_rounded, size: 18, color: Color(0xFF64748B)),
+                                                  prefixIcon: const Icon(
+                                                    Icons.tag_rounded,
+                                                    size: 18,
+                                                    color: Color(0xFF64748B),
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -1087,7 +1306,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                                 controller: shadeCodeCtrl,
                                                 decoration: inputDec(
                                                   hint: 'Enter shade code',
-                                                  prefixIcon: const Icon(Icons.color_lens_outlined, size: 18, color: Color(0xFF64748B)),
+                                                  prefixIcon: const Icon(
+                                                    Icons.color_lens_outlined,
+                                                    size: 18,
+                                                    color: Color(0xFF64748B),
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -1100,7 +1323,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                                 controller: shadeNameCtrl,
                                                 decoration: inputDec(
                                                   hint: 'Enter shade name',
-                                                  prefixIcon: const Icon(Icons.format_paint_outlined, size: 18, color: Color(0xFF64748B)),
+                                                  prefixIcon: const Icon(
+                                                    Icons.format_paint_outlined,
+                                                    size: 18,
+                                                    color: Color(0xFF64748B),
+                                                  ),
                                                 ),
                                               ),
                                             ),
@@ -1136,7 +1363,11 @@ class _ProductsPageState extends State<ProductsPage> {
                               controller: nameCtrl,
                               decoration: inputDec(
                                 hint: 'Enter product name',
-                                prefixIcon: const Icon(Icons.inventory_2_outlined, size: 18, color: sidebarBlue),
+                                prefixIcon: const Icon(
+                                  Icons.inventory_2_outlined,
+                                  size: 18,
+                                  color: sidebarBlue,
+                                ),
                               ),
                             ),
                           ),
@@ -1152,19 +1383,43 @@ class _ProductsPageState extends State<ProductsPage> {
                                     controller: categoryCtrl,
                                     decoration: inputDec(
                                       hint: 'Select or enter category',
-                                      prefixIcon: const Icon(Icons.category_outlined, size: 18, color: sidebarBlue),
+                                      prefixIcon: const Icon(
+                                        Icons.category_outlined,
+                                        size: 18,
+                                        color: sidebarBlue,
+                                      ),
                                       suffixIcon: _categories.isNotEmpty
                                           ? PopupMenuButton<String>(
-                                              icon: const Icon(Icons.arrow_drop_down_circle_outlined, size: 18, color: sidebarBlue),
+                                              icon: const Icon(
+                                                Icons
+                                                    .arrow_drop_down_circle_outlined,
+                                                size: 18,
+                                                color: sidebarBlue,
+                                              ),
                                               tooltip: 'Select Category',
                                               onSelected: (val) {
-                                                setDialogState(() => categoryCtrl.text = val);
+                                                setDialogState(
+                                                  () => categoryCtrl.text = val,
+                                                );
                                               },
                                               itemBuilder: (ctx) => _categories
-                                                  .map((c) => PopupMenuItem<String>(
-                                                        value: (c['name'] ?? c['category_name'] ?? '').toString(),
-                                                        child: Text((c['name'] ?? c['category_name'] ?? '').toString()),
-                                                      ))
+                                                  .map(
+                                                    (
+                                                      c,
+                                                    ) => PopupMenuItem<String>(
+                                                      value:
+                                                          (c['name'] ??
+                                                                  c['category_name'] ??
+                                                                  '')
+                                                              .toString(),
+                                                      child: Text(
+                                                        (c['name'] ??
+                                                                c['category_name'] ??
+                                                                '')
+                                                            .toString(),
+                                                      ),
+                                                    ),
+                                                  )
                                                   .toList(),
                                             )
                                           : null,
@@ -1182,19 +1437,43 @@ class _ProductsPageState extends State<ProductsPage> {
                                     controller: brandCtrl,
                                     decoration: inputDec(
                                       hint: 'Select or enter brand',
-                                      prefixIcon: const Icon(Icons.branding_watermark_outlined, size: 18, color: sidebarBlue),
+                                      prefixIcon: const Icon(
+                                        Icons.branding_watermark_outlined,
+                                        size: 18,
+                                        color: sidebarBlue,
+                                      ),
                                       suffixIcon: _brands.isNotEmpty
                                           ? PopupMenuButton<String>(
-                                              icon: const Icon(Icons.arrow_drop_down_circle_outlined, size: 18, color: sidebarBlue),
+                                              icon: const Icon(
+                                                Icons
+                                                    .arrow_drop_down_circle_outlined,
+                                                size: 18,
+                                                color: sidebarBlue,
+                                              ),
                                               tooltip: 'Select Brand',
                                               onSelected: (val) {
-                                                setDialogState(() => brandCtrl.text = val);
+                                                setDialogState(
+                                                  () => brandCtrl.text = val,
+                                                );
                                               },
                                               itemBuilder: (ctx) => _brands
-                                                  .map((b) => PopupMenuItem<String>(
-                                                        value: (b['name'] ?? b['brand_name'] ?? '').toString(),
-                                                        child: Text((b['name'] ?? b['brand_name'] ?? '').toString()),
-                                                      ))
+                                                  .map(
+                                                    (
+                                                      b,
+                                                    ) => PopupMenuItem<String>(
+                                                      value:
+                                                          (b['name'] ??
+                                                                  b['brand_name'] ??
+                                                                  '')
+                                                              .toString(),
+                                                      child: Text(
+                                                        (b['name'] ??
+                                                                b['brand_name'] ??
+                                                                '')
+                                                            .toString(),
+                                                      ),
+                                                    ),
+                                                  )
                                                   .toList(),
                                             )
                                           : null,
@@ -1212,14 +1491,39 @@ class _ProductsPageState extends State<ProductsPage> {
                                     controller: unitCtrl,
                                     decoration: inputDec(
                                       hint: 'Litre',
-                                      prefixIcon: const Icon(Icons.straighten_rounded, size: 18, color: Color(0xFF64748B)),
+                                      prefixIcon: const Icon(
+                                        Icons.straighten_rounded,
+                                        size: 18,
+                                        color: Color(0xFF64748B),
+                                      ),
                                       suffixIcon: PopupMenuButton<String>(
-                                        icon: const Icon(Icons.arrow_drop_down, size: 20, color: Color(0xFF64748B)),
+                                        icon: const Icon(
+                                          Icons.arrow_drop_down,
+                                          size: 20,
+                                          color: Color(0xFF64748B),
+                                        ),
                                         tooltip: 'Select Unit',
-                                        onSelected: (u) => setDialogState(() => unitCtrl.text = u),
-                                        itemBuilder: (_) => ['Litre', 'Kg', 'Tin', 'Bucket', 'Can', 'Pieces (Pcs)', 'Box', 'Set']
-                                            .map((u) => PopupMenuItem(value: u, child: Text(u)))
-                                            .toList(),
+                                        onSelected: (u) => setDialogState(
+                                          () => unitCtrl.text = u,
+                                        ),
+                                        itemBuilder: (_) =>
+                                            [
+                                                  'Litre',
+                                                  'Kg',
+                                                  'Tin',
+                                                  'Bucket',
+                                                  'Can',
+                                                  'Pieces (Pcs)',
+                                                  'Box',
+                                                  'Set',
+                                                ]
+                                                .map(
+                                                  (u) => PopupMenuItem(
+                                                    value: u,
+                                                    child: Text(u),
+                                                  ),
+                                                )
+                                                .toList(),
                                       ),
                                     ),
                                   ),
@@ -1254,11 +1558,18 @@ class _ProductsPageState extends State<ProductsPage> {
                                   isRequired: true,
                                   child: TextField(
                                     controller: costCtrl,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                     onChanged: (_) => setDialogState(() {}),
                                     decoration: inputDec(
                                       hint: '0.00',
-                                      prefixIcon: const Icon(Icons.currency_rupee_rounded, size: 18, color: sidebarBlue),
+                                      prefixIcon: const Icon(
+                                        Icons.currency_rupee_rounded,
+                                        size: 18,
+                                        color: sidebarBlue,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1270,11 +1581,18 @@ class _ProductsPageState extends State<ProductsPage> {
                                   isRequired: true,
                                   child: TextField(
                                     controller: sellingCtrl,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                     onChanged: (_) => setDialogState(() {}),
                                     decoration: inputDec(
                                       hint: '0.00',
-                                      prefixIcon: const Icon(Icons.sell_outlined, size: 18, color: darkGreen),
+                                      prefixIcon: const Icon(
+                                        Icons.sell_outlined,
+                                        size: 18,
+                                        color: darkGreen,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1285,10 +1603,17 @@ class _ProductsPageState extends State<ProductsPage> {
                                   label: 'Applicable GST %',
                                   child: TextField(
                                     controller: gstCtrl,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                     decoration: inputDec(
                                       hint: '18',
-                                      prefixIcon: const Icon(Icons.percent_rounded, size: 18, color: Color(0xFF64748B)),
+                                      prefixIcon: const Icon(
+                                        Icons.percent_rounded,
+                                        size: 18,
+                                        color: Color(0xFF64748B),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1299,19 +1624,30 @@ class _ProductsPageState extends State<ProductsPage> {
 
                           // LIVE PROFIT CARD
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 11,
+                            ),
                             decoration: BoxDecoration(
-                              color: profitVal >= 0 ? const Color(0xFFF0FDF4) : const Color(0xFFFEF2F2),
+                              color: profitVal >= 0
+                                  ? const Color(0xFFF0FDF4)
+                                  : const Color(0xFFFEF2F2),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: profitVal >= 0 ? const Color(0xFFBBF7D0) : const Color(0xFFFECACA),
+                                color: profitVal >= 0
+                                    ? const Color(0xFFBBF7D0)
+                                    : const Color(0xFFFECACA),
                               ),
                             ),
                             child: Row(
                               children: [
                                 Icon(
-                                  profitVal >= 0 ? Icons.trending_up_rounded : Icons.trending_down_rounded,
-                                  color: profitVal >= 0 ? darkGreen : Colors.red,
+                                  profitVal >= 0
+                                      ? Icons.trending_up_rounded
+                                      : Icons.trending_down_rounded,
+                                  color: profitVal >= 0
+                                      ? darkGreen
+                                      : Colors.red,
                                   size: 20,
                                 ),
                                 const SizedBox(width: 10),
@@ -1323,7 +1659,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                     style: TextStyle(
                                       fontSize: 12.5,
                                       fontWeight: FontWeight.w700,
-                                      color: profitVal >= 0 ? const Color(0xFF166534) : const Color(0xFF991B1B),
+                                      color: profitVal >= 0
+                                          ? const Color(0xFF166534)
+                                          : const Color(0xFF991B1B),
                                     ),
                                   ),
                                 ),
@@ -1357,10 +1695,17 @@ class _ProductsPageState extends State<ProductsPage> {
                                   isRequired: true,
                                   child: TextField(
                                     controller: stockCtrl,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                     decoration: inputDec(
                                       hint: '0',
-                                      prefixIcon: const Icon(Icons.warehouse_outlined, size: 18, color: sidebarBlue),
+                                      prefixIcon: const Icon(
+                                        Icons.warehouse_outlined,
+                                        size: 18,
+                                        color: sidebarBlue,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1371,10 +1716,17 @@ class _ProductsPageState extends State<ProductsPage> {
                                   label: 'Low Stock Alert Level',
                                   child: TextField(
                                     controller: reorderCtrl,
-                                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                     decoration: inputDec(
                                       hint: '5',
-                                      prefixIcon: const Icon(Icons.notifications_active_outlined, size: 18, color: Color(0xFF64748B)),
+                                      prefixIcon: const Icon(
+                                        Icons.notifications_active_outlined,
+                                        size: 18,
+                                        color: Color(0xFF64748B),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1387,7 +1739,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                     controller: packSizeCtrl,
                                     decoration: inputDec(
                                       hint: '1L, 4L, 20L',
-                                      prefixIcon: const Icon(Icons.aspect_ratio_rounded, size: 18, color: Color(0xFF64748B)),
+                                      prefixIcon: const Icon(
+                                        Icons.aspect_ratio_rounded,
+                                        size: 18,
+                                        color: Color(0xFF64748B),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -1402,7 +1758,11 @@ class _ProductsPageState extends State<ProductsPage> {
                               maxLines: 2,
                               decoration: inputDec(
                                 hint: 'Optional paint notes (finish, surface, formula, etc.)',
-                                prefixIcon: const Icon(Icons.notes_rounded, size: 18, color: Color(0xFF64748B)),
+                                prefixIcon: const Icon(
+                                  Icons.notes_rounded,
+                                  size: 18,
+                                  color: Color(0xFF64748B),
+                                ),
                               ),
                             ),
                           ),
@@ -1417,15 +1777,25 @@ class _ProductsPageState extends State<ProductsPage> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         OutlinedButton(
-                          onPressed: isSaving ? null : () => Navigator.pop(dialogCtx),
+                          onPressed: isSaving
+                              ? null
+                              : () => Navigator.pop(dialogCtx),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 13),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 13,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(9),
+                            ),
                             side: const BorderSide(color: Color(0xFFCBD5E1)),
                           ),
                           child: const Text(
                             'Cancel',
-                            style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                              color: Color(0xFF475569),
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -1434,8 +1804,13 @@ class _ProductsPageState extends State<ProductsPage> {
                             backgroundColor: sidebarBlue,
                             foregroundColor: Colors.white,
                             elevation: 1,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 13,
+                            ),
                           ),
                           onPressed: isSaving
                               ? null
@@ -1451,26 +1826,47 @@ class _ProductsPageState extends State<ProductsPage> {
                                   }
 
                                   setDialogState(() => isSaving = true);
-                                  final barcodeVal = skuCtrl.text.trim().isEmpty ? _generateUniqueBarcode() : skuCtrl.text.trim();
+                                  final barcodeVal = skuCtrl.text.trim().isEmpty
+                                      ? _generateUniqueBarcode()
+                                      : skuCtrl.text.trim();
 
                                   int? finalCategoryId;
                                   final catName = categoryCtrl.text.trim();
                                   if (catName.isNotEmpty) {
-                                    final match = _categories.cast<Map<String, dynamic>?>().firstWhere(
-                                      (c) => (c?['name'] ?? c?['category_name'] ?? '').toString().trim().toLowerCase() == catName.toLowerCase(),
-                                      orElse: () => null,
-                                    );
+                                    final match = _categories
+                                        .cast<Map<String, dynamic>?>()
+                                        .firstWhere(
+                                          (c) =>
+                                              (c?['name'] ??
+                                                      c?['category_name'] ??
+                                                      '')
+                                                  .toString()
+                                                  .trim()
+                                                  .toLowerCase() ==
+                                              catName.toLowerCase(),
+                                          orElse: () => null,
+                                        );
                                     if (match != null && match['id'] != null) {
-                                      finalCategoryId = int.tryParse(match['id'].toString());
+                                      finalCategoryId = int.tryParse(
+                                        match['id'].toString(),
+                                      );
                                     } else {
                                       try {
-                                        final res = await _api.post('/categories', {
-                                          'name': catName,
-                                          'description': 'Created automatically via Product modal',
-                                        });
+                                        final res = await _api.post(
+                                          '/categories',
+                                          {
+                                            'name': catName,
+                                            'description': 'Created automatically via Product modal',
+                                          },
+                                        );
                                         if (res is Map && res['id'] != null) {
-                                          finalCategoryId = int.tryParse(res['id'].toString());
-                                          _categories.add({'id': finalCategoryId, 'name': catName});
+                                          finalCategoryId = int.tryParse(
+                                            res['id'].toString(),
+                                          );
+                                          _categories.add({
+                                            'id': finalCategoryId,
+                                            'name': catName,
+                                          });
                                         }
                                       } catch (_) {}
                                     }
@@ -1479,12 +1875,23 @@ class _ProductsPageState extends State<ProductsPage> {
                                   int? finalBrandId;
                                   final brandName = brandCtrl.text.trim();
                                   if (brandName.isNotEmpty) {
-                                    final match = _brands.cast<Map<String, dynamic>?>().firstWhere(
-                                      (b) => (b?['name'] ?? b?['brand_name'] ?? '').toString().trim().toLowerCase() == brandName.toLowerCase(),
-                                      orElse: () => null,
-                                    );
+                                    final match = _brands
+                                        .cast<Map<String, dynamic>?>()
+                                        .firstWhere(
+                                          (b) =>
+                                              (b?['name'] ??
+                                                      b?['brand_name'] ??
+                                                      '')
+                                                  .toString()
+                                                  .trim()
+                                                  .toLowerCase() ==
+                                              brandName.toLowerCase(),
+                                          orElse: () => null,
+                                        );
                                     if (match != null && match['id'] != null) {
-                                      finalBrandId = int.tryParse(match['id'].toString());
+                                      finalBrandId = int.tryParse(
+                                        match['id'].toString(),
+                                      );
                                     } else {
                                       try {
                                         final res = await _api.post('/brands', {
@@ -1492,8 +1899,13 @@ class _ProductsPageState extends State<ProductsPage> {
                                           'description': 'Created automatically via Product modal',
                                         });
                                         if (res is Map && res['id'] != null) {
-                                          finalBrandId = int.tryParse(res['id'].toString());
-                                          _brands.add({'id': finalBrandId, 'name': brandName});
+                                          finalBrandId = int.tryParse(
+                                            res['id'].toString(),
+                                          );
+                                          _brands.add({
+                                            'id': finalBrandId,
+                                            'name': brandName,
+                                          });
                                         }
                                       } catch (_) {}
                                     }
@@ -1506,19 +1918,39 @@ class _ProductsPageState extends State<ProductsPage> {
                                     'brand_id': finalBrandId,
                                     'shade_code': shadeCodeCtrl.text.trim(),
                                     'shade_name': shadeNameCtrl.text.trim(),
-                                    'pack_size': packSizeCtrl.text.trim().isEmpty ? '1L' : packSizeCtrl.text.trim(),
-                                    'unit': unitCtrl.text.trim().isEmpty ? 'Litre' : unitCtrl.text.trim(),
-                                    'cost_price': double.tryParse(costCtrl.text.trim()) ?? 0,
-                                    'selling_price': double.tryParse(sellingCtrl.text.trim()) ?? 0,
-                                    'stock_qty': double.tryParse(stockCtrl.text.trim()) ?? 0,
-                                    'reorder_level': int.tryParse(reorderCtrl.text.trim()) ?? (product?['reorder_level'] ?? 5),
+                                    'pack_size':
+                                        packSizeCtrl.text.trim().isEmpty
+                                        ? '1L'
+                                        : packSizeCtrl.text.trim(),
+                                    'unit': unitCtrl.text.trim().isEmpty
+                                        ? 'Litre'
+                                        : unitCtrl.text.trim(),
+                                    'cost_price':
+                                        double.tryParse(costCtrl.text.trim()) ??
+                                        0,
+                                    'selling_price':
+                                        double.tryParse(
+                                          sellingCtrl.text.trim(),
+                                        ) ??
+                                        0,
+                                    'stock_qty':
+                                        double.tryParse(
+                                          stockCtrl.text.trim(),
+                                        ) ??
+                                        0,
+                                    'reorder_level':
+                                        int.tryParse(reorderCtrl.text.trim()) ??
+                                        (product?['reorder_level'] ?? 5),
                                     'description': descCtrl.text.trim(),
                                     'image_url': currentImageUrl ?? '',
                                   };
 
                                   try {
                                     if (isEditing) {
-                                      await _api.put('/products/${product['id']}', payload);
+                                      await _api.put(
+                                        '/products/${product['id']}',
+                                        payload,
+                                      );
                                     } else {
                                       await _api.post('/products', payload);
                                     }
@@ -1527,7 +1959,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                     if (!mounted) return;
                                     AppToast.showSuccess(
                                       context,
-                                      title: isEditing ? 'Product Updated!' : 'Product Created!',
+                                      title: isEditing
+                                          ? 'Product Updated!'
+                                          : 'Product Created!',
                                       message: isEditing
                                           ? '$name details updated successfully.'
                                           : '$name created successfully with barcode $barcodeVal.',
@@ -1538,8 +1972,13 @@ class _ProductsPageState extends State<ProductsPage> {
                                     if (!mounted) return;
                                     AppToast.showError(
                                       context,
-                                      title: isEditing ? 'Update Failed' : 'Save Failed',
-                                      message: e.toString().replaceAll('Exception: ', ''),
+                                      title: isEditing
+                                          ? 'Update Failed'
+                                          : 'Save Failed',
+                                      message: e.toString().replaceAll(
+                                        'Exception: ',
+                                        '',
+                                      ),
                                     );
                                   }
                                 },
@@ -1547,13 +1986,21 @@ class _ProductsPageState extends State<ProductsPage> {
                               ? const SizedBox(
                                   width: 18,
                                   height: 18,
-                                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
-                              : const Icon(Icons.check_circle_rounded, size: 19),
+                              : const Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 19,
+                                ),
                           label: Text(
                             isSaving
                                 ? 'Saving...'
-                                : (isEditing ? 'Update Product' : 'Save Product & Barcode'),
+                                : (isEditing
+                                      ? 'Update Product'
+                                      : 'Save Product & Barcode'),
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
@@ -1575,12 +2022,23 @@ class _ProductsPageState extends State<ProductsPage> {
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        title: const Text('Delete Product', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
-        content: Text('Are you sure you want to delete "${product['product_name']}"?'),
+        title: const Text(
+          'Delete Product',
+          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+        content: Text(
+          'Are you sure you want to delete "${product['product_name']}"?',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete'),
           ),
@@ -1596,7 +2054,8 @@ class _ProductsPageState extends State<ProductsPage> {
         AppToast.showSuccess(
           context,
           title: 'Product Deleted',
-          message: 'Product "${product['product_name'] ?? ''}" removed successfully.',
+          message:
+              'Product "${product['product_name'] ?? ''}" removed successfully.',
         );
         _loadData();
       }
@@ -1633,12 +2092,19 @@ class _ProductsPageState extends State<ProductsPage> {
                     children: [
                       Text(
                         'Products & Inventory',
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: navyDark),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: navyDark,
+                        ),
                       ),
                       SizedBox(height: 2),
                       Text(
                         'Manage paint catalog, pricing, and retail barcodes',
-                        style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                     ],
                   ),
@@ -1646,13 +2112,21 @@ class _ProductsPageState extends State<ProductsPage> {
                 ElevatedButton.icon(
                   onPressed: () => _showProductDialog(),
                   icon: const Icon(Icons.add_rounded, size: 18),
-                  label: const Text('Add Product', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                  label: const Text(
+                    'Add Product',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: sidebarBlue,
                     foregroundColor: Colors.white,
                     elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 ),
               ],
@@ -1673,16 +2147,27 @@ class _ProductsPageState extends State<ProductsPage> {
                     height: 40,
                     child: TextField(
                       controller: _searchCtrl,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
                       onChanged: (val) => setState(() => _searchQuery = val),
                       style: const TextStyle(color: navyDark, fontSize: 13),
                       decoration: InputDecoration(
                         hintText: 'Search by Name, ID, or SKU...',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                        prefixIcon: const Icon(Icons.search_rounded, size: 18, color: Color(0xFF64748B)),
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          size: 18,
+                          color: Color(0xFF64748B),
+                        ),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: cardBorder),
@@ -1699,15 +2184,33 @@ class _ProductsPageState extends State<ProductsPage> {
                     height: 40,
                     child: TextField(
                       controller: _barcodeCtrl,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
                       onChanged: (val) => setState(() => _barcodeQuery = val),
-                      style: const TextStyle(color: navyDark, fontSize: 13, fontFamily: 'monospace', fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: navyDark,
+                        fontSize: 13,
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Scan Barcode / SKU...',
-                        hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontFamily: 'sans-serif'),
-                        prefixIcon: const Icon(Icons.qr_code_scanner_rounded, size: 18, color: sidebarBlue),
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12,
+                          fontFamily: 'sans-serif',
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.qr_code_scanner_rounded,
+                          size: 18,
+                          color: sidebarBlue,
+                        ),
                         suffixIcon: _barcodeQuery.isNotEmpty
                             ? IconButton(
-                                icon: const Icon(Icons.clear, size: 16, color: Color(0xFF94A3B8)),
+                                icon: const Icon(
+                                  Icons.clear,
+                                  size: 16,
+                                  color: Color(0xFF94A3B8),
+                                ),
                                 onPressed: () {
                                   _barcodeCtrl.clear();
                                   setState(() => _barcodeQuery = '');
@@ -1717,14 +2220,21 @@ class _ProductsPageState extends State<ProductsPage> {
                         filled: true,
                         fillColor: const Color(0xFFEFF6FF),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFBFDBFE)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFBFDBFE),
+                          ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(color: Color(0xFFBFDBFE)),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFBFDBFE),
+                          ),
                         ),
                       ),
                     ),
@@ -1739,7 +2249,10 @@ class _ProductsPageState extends State<ProductsPage> {
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: cardBorder),
@@ -1751,16 +2264,23 @@ class _ProductsPageState extends State<ProductsPage> {
                       ),
                       style: const TextStyle(color: navyDark, fontSize: 13),
                       items: [
-                        const DropdownMenuItem(value: 'All', child: Text('All Categories')),
+                        const DropdownMenuItem(
+                          value: 'All',
+                          child: Text('All Categories'),
+                        ),
                         ..._categories.map(
                           (c) => DropdownMenuItem(
                             value: c['id'].toString(),
-                            child: Text((c['name'] ?? c['category_name'] ?? 'Category').toString()),
+                            child: Text(
+                              (c['name'] ?? c['category_name'] ?? 'Category')
+                                  .toString(),
+                            ),
                           ),
                         ),
                       ],
                       onChanged: (val) {
-                        if (val != null) setState(() => _selectedCategoryFilter = val);
+                        if (val != null)
+                          setState(() => _selectedCategoryFilter = val);
                       },
                     ),
                   );
@@ -1774,7 +2294,10 @@ class _ProductsPageState extends State<ProductsPage> {
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         isDense: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 9,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: cardBorder),
@@ -1786,10 +2309,22 @@ class _ProductsPageState extends State<ProductsPage> {
                       ),
                       style: const TextStyle(color: navyDark, fontSize: 13),
                       items: const [
-                        DropdownMenuItem(value: 'All', child: Text('All Stock Status')),
-                        DropdownMenuItem(value: 'In Stock', child: Text('In Stock')),
-                        DropdownMenuItem(value: 'Low Stock', child: Text('Low Stock')),
-                        DropdownMenuItem(value: 'Out of Stock', child: Text('Out of Stock')),
+                        DropdownMenuItem(
+                          value: 'All',
+                          child: Text('All Stock Status'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'In Stock',
+                          child: Text('In Stock'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Low Stock',
+                          child: Text('Low Stock'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Out of Stock',
+                          child: Text('Out of Stock'),
+                        ),
                       ],
                       onChanged: (val) {
                         if (val != null) setState(() => _stockFilter = val);
@@ -1803,11 +2338,18 @@ class _ProductsPageState extends State<ProductsPage> {
                     child: OutlinedButton(
                       onPressed: _clearFilters,
                       style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.zero, // Remove inner padding so icon centers
+                        padding: EdgeInsets
+                            .zero, // Remove inner padding so icon centers
                         side: const BorderSide(color: Color(0xFFE2E8F0)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: const Icon(Icons.close_rounded, size: 18, color: Color(0xFF475569)),
+                      child: const Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: Color(0xFF475569),
+                      ),
                     ),
                   );
 
@@ -1872,14 +2414,26 @@ class _ProductsPageState extends State<ProductsPage> {
                       children: [
                         Text(
                           'Showing ${_filteredProducts.length} of ${_products.length} products',
-                          style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B), fontWeight: FontWeight.w500),
+                          style: const TextStyle(
+                            fontSize: 12.5,
+                            color: Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                         TextButton.icon(
                           onPressed: _loadData,
-                          icon: const Icon(Icons.refresh_rounded, size: 16, color: navyDark),
+                          icon: const Icon(
+                            Icons.refresh_rounded,
+                            size: 16,
+                            color: navyDark,
+                          ),
                           label: const Text(
                             'Refresh Catalog',
-                            style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: navyDark),
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w600,
+                              color: navyDark,
+                            ),
                           ),
                         ),
                       ],
@@ -1890,18 +2444,30 @@ class _ProductsPageState extends State<ProductsPage> {
                   if (_isLoading)
                     const SizedBox(
                       height: 240,
-                      child: Center(child: CircularProgressIndicator(color: sidebarBlue)),
+                      child: Center(
+                        child: CircularProgressIndicator(color: sidebarBlue),
+                      ),
                     )
                   else if (_errorMessage != null)
                     Padding(
                       padding: const EdgeInsets.all(28),
                       child: Column(
                         children: [
-                          const Icon(Icons.error_outline, size: 38, color: Colors.red),
+                          const Icon(
+                            Icons.error_outline,
+                            size: 38,
+                            color: Colors.red,
+                          ),
                           const SizedBox(height: 8),
-                          Text(_errorMessage!, style: const TextStyle(color: navyDark)),
+                          Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: navyDark),
+                          ),
                           const SizedBox(height: 12),
-                          ElevatedButton(onPressed: _loadData, child: const Text('Try Again')),
+                          ElevatedButton(
+                            onPressed: _loadData,
+                            child: const Text('Try Again'),
+                          ),
                         ],
                       ),
                     )
@@ -1910,17 +2476,33 @@ class _ProductsPageState extends State<ProductsPage> {
                       padding: const EdgeInsets.all(36),
                       child: Column(
                         children: [
-                          const Icon(Icons.inventory_2_outlined, size: 44, color: Colors.grey),
+                          const Icon(
+                            Icons.inventory_2_outlined,
+                            size: 44,
+                            color: Colors.grey,
+                          ),
                           const SizedBox(height: 10),
-                          const Text('No paint products found', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'No paint products found',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 4),
-                          const Text('Add wall paints, enamels, primers, or tools to your shop catalog.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          const Text(
+                            'Add wall paints, enamels, primers, or tools to your shop catalog.',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
                           const SizedBox(height: 14),
                           ElevatedButton.icon(
                             onPressed: () => _showProductDialog(),
                             icon: const Icon(Icons.add),
                             label: const Text('Add First Product'),
-                            style: ElevatedButton.styleFrom(backgroundColor: sidebarBlue, foregroundColor: Colors.white),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: sidebarBlue,
+                              foregroundColor: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -1935,18 +2517,112 @@ class _ProductsPageState extends State<ProductsPage> {
                             // Table Header
                             Container(
                               color: const Color(0xFFF8FAFC),
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 12,
+                              ),
                               child: const Row(
                                 children: [
-                                  SizedBox(width: 52, child: Text('Image', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 4, child: Text('Product Name', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 3, child: Text('Barcode / Label', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 2, child: Text('Category', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 2, child: Text('Brand', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 1, child: Text('Unit', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 1, child: Text('Stock', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  Expanded(flex: 2, child: Text('Price', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
-                                  SizedBox(width: 120, child: Text('Action', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF475569)))),
+                                  SizedBox(
+                                    width: 52,
+                                    child: Text(
+                                      'Image',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 4,
+                                    child: Text(
+                                      'Product Name',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Barcode / Label',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Category',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Brand',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'Unit',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 1,
+                                    child: Text(
+                                      'Stock',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Price',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 120,
+                                    child: Text(
+                                      'Action',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF475569),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
@@ -1957,10 +2633,16 @@ class _ProductsPageState extends State<ProductsPage> {
                               final p = _filteredProducts[idx];
                               final stock = (p['stock_qty'] is num)
                                   ? (p['stock_qty'] as num).toDouble()
-                                  : double.tryParse(p['stock_qty']?.toString() ?? '0') ?? 0;
+                                  : double.tryParse(
+                                          p['stock_qty']?.toString() ?? '0',
+                                        ) ??
+                                        0;
                               final reorder = (p['reorder_level'] is num)
                                   ? (p['reorder_level'] as num).toDouble()
-                                  : double.tryParse(p['reorder_level']?.toString() ?? '0') ?? 0;
+                                  : double.tryParse(
+                                          p['reorder_level']?.toString() ?? '0',
+                                        ) ??
+                                        0;
                               final isLow = stock <= reorder;
                               final barcode = _productBarcode(p);
 
@@ -1975,7 +2657,10 @@ class _ProductsPageState extends State<ProductsPage> {
                                     ),
                                   ),
                                 ),
-                                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 12,
+                                ),
                                 child: Row(
                                   children: [
                                     // Image
@@ -1987,15 +2672,22 @@ class _ProductsPageState extends State<ProductsPage> {
                                           imageUrl: p['image_url']?.toString(),
                                           width: 36,
                                           height: 36,
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
                                           fallback: Container(
                                             width: 36,
                                             height: 36,
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFEFF6FF),
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
-                                            child: const Icon(Icons.format_paint_rounded, size: 18, color: sidebarBlue),
+                                            child: const Icon(
+                                              Icons.format_paint_rounded,
+                                              size: 18,
+                                              color: sidebarBlue,
+                                            ),
                                           ),
                                         ),
                                       ),
@@ -2005,18 +2697,26 @@ class _ProductsPageState extends State<ProductsPage> {
                                     Expanded(
                                       flex: 4,
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
                                             p['product_name'] ?? '-',
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w700, color: navyDark),
+                                            style: const TextStyle(
+                                              fontSize: 13.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: navyDark,
+                                            ),
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
                                             'ID: #${p['id'] ?? '-'}',
-                                            style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              color: Color(0xFF64748B),
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -2029,28 +2729,42 @@ class _ProductsPageState extends State<ProductsPage> {
                                         alignment: Alignment.centerLeft,
                                         child: InkWell(
                                           onTap: () => _showBarcodeDialog(p),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                           child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFFF8FAFC),
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                                              borderRadius:
+                                                  BorderRadius.circular(6),
+                                              border: Border.all(
+                                                color: const Color(0xFFCBD5E1),
+                                              ),
                                             ),
                                             child: Row(
                                               mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(Icons.qr_code_2_rounded, size: 16, color: sidebarBlue),
+                                                const Icon(
+                                                  Icons.qr_code_2_rounded,
+                                                  size: 16,
+                                                  color: sidebarBlue,
+                                                ),
                                                 const SizedBox(width: 6),
                                                 Flexible(
                                                   child: Text(
                                                     barcode,
                                                     maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                     style: const TextStyle(
                                                       fontFamily: 'monospace',
                                                       fontSize: 11.5,
-                                                      fontWeight: FontWeight.w700,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                       color: navyDark,
                                                     ),
                                                   ),
@@ -2069,7 +2783,10 @@ class _ProductsPageState extends State<ProductsPage> {
                                         _categoryName(p),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF334155),
+                                        ),
                                       ),
                                     ),
 
@@ -2080,7 +2797,10 @@ class _ProductsPageState extends State<ProductsPage> {
                                         _brandName(p),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF334155),
+                                        ),
                                       ),
                                     ),
 
@@ -2091,7 +2811,10 @@ class _ProductsPageState extends State<ProductsPage> {
                                         (p['unit'] ?? '-').toString(),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          color: Color(0xFF475569),
+                                        ),
                                       ),
                                     ),
 
@@ -2099,15 +2822,19 @@ class _ProductsPageState extends State<ProductsPage> {
                                     Expanded(
                                       flex: 1,
                                       child: Text(
-                                        stock.toStringAsFixed(stock.truncateToDouble() == stock ? 0 : 1),
+                                        stock.toStringAsFixed(
+                                          stock.truncateToDouble() == stock
+                                              ? 0
+                                              : 1,
+                                        ),
                                         style: TextStyle(
                                           fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                           color: stock <= 0
                                               ? Colors.red.shade600
                                               : isLow
-                                                  ? const Color(0xFFD97706)
-                                                  : navyDark,
+                                              ? const Color(0xFFD97706)
+                                              : navyDark,
                                         ),
                                       ),
                                     ),
@@ -2117,7 +2844,11 @@ class _ProductsPageState extends State<ProductsPage> {
                                       flex: 2,
                                       child: Text(
                                         _currency(p['selling_price']),
-                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: navyDark),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: navyDark,
+                                        ),
                                       ),
                                     ),
 
@@ -2125,21 +2856,36 @@ class _ProductsPageState extends State<ProductsPage> {
                                     SizedBox(
                                       width: 120,
                                       child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           IconButton(
                                             tooltip: 'Print Barcode Label',
-                                            icon: const Icon(Icons.qr_code_2_rounded, size: 18, color: darkGreen),
-                                            onPressed: () => _showBarcodeDialog(p),
+                                            icon: const Icon(
+                                              Icons.qr_code_2_rounded,
+                                              size: 18,
+                                              color: darkGreen,
+                                            ),
+                                            onPressed: () =>
+                                                _showBarcodeDialog(p),
                                           ),
                                           IconButton(
                                             tooltip: 'Edit',
-                                            icon: const Icon(Icons.edit_outlined, size: 17, color: sidebarBlue),
-                                            onPressed: () => _showProductDialog(product: p),
+                                            icon: const Icon(
+                                              Icons.edit_outlined,
+                                              size: 17,
+                                              color: sidebarBlue,
+                                            ),
+                                            onPressed: () =>
+                                                _showProductDialog(product: p),
                                           ),
                                           IconButton(
                                             tooltip: 'Delete',
-                                            icon: const Icon(Icons.delete_outline_rounded, size: 17, color: Colors.red),
+                                            icon: const Icon(
+                                              Icons.delete_outline_rounded,
+                                              size: 17,
+                                              color: Colors.red,
+                                            ),
                                             onPressed: () => _deleteProduct(p),
                                           ),
                                         ],
@@ -2195,7 +2941,10 @@ class BarcodePainter extends CustomPainter {
     for (final widthUnits in pattern) {
       final barWidth = widthUnits * unitWidth;
       if (isBar) {
-        canvas.drawRect(Rect.fromLTWH(currentX, 0, barWidth, size.height), paint);
+        canvas.drawRect(
+          Rect.fromLTWH(currentX, 0, barWidth, size.height),
+          paint,
+        );
       }
       currentX += barWidth;
       isBar = !isBar;

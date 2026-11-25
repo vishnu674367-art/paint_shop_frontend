@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'api_service.dart';
 import 'slip_downloader.dart';
+import 'app_input_formatters.dart';
 
-enum ReportView {
-  sales,
-  purchase,
-  stock,
-  collections,
-  profit,
-}
+enum ReportView { sales, purchase, stock, collections, profit }
 
 class ReportsPage extends StatefulWidget {
   final String token;
@@ -78,9 +74,15 @@ class _ReportsPageState extends State<ReportsPage> {
       if (!mounted) return;
 
       setState(() {
-        _allInvoices = results[0]['data'] is List ? List.from(results[0]['data']) : [];
-        _purchases = results[1]['data'] is List ? List.from(results[1]['data']) : [];
-        _products = results[2]['data'] is List ? List.from(results[2]['data']) : [];
+        _allInvoices = results[0]['data'] is List
+            ? List.from(results[0]['data'])
+            : [];
+        _purchases = results[1]['data'] is List
+            ? List.from(results[1]['data'])
+            : [];
+        _products = results[2]['data'] is List
+            ? List.from(results[2]['data'])
+            : [];
         _filteredInvoices = List.from(_allInvoices);
         _isLoading = false;
       });
@@ -113,11 +115,17 @@ class _ReportsPageState extends State<ReportsPage> {
 
   // --- Computed Metrics (Dynamic with Filtered Invoices) ---
   double get _totalSales {
-    return _filteredInvoices.fold<double>(0.0, (sum, inv) => sum + _numVal(inv['total_amount']));
+    return _filteredInvoices.fold<double>(
+      0.0,
+      (sum, inv) => sum + _numVal(inv['total_amount']),
+    );
   }
 
   double get _totalPurchases {
-    return _purchases.fold<double>(0.0, (sum, p) => sum + _numVal(p['total_amount']));
+    return _purchases.fold<double>(
+      0.0,
+      (sum, p) => sum + _numVal(p['total_amount']),
+    );
   }
 
   double get _stockValue {
@@ -131,11 +139,17 @@ class _ReportsPageState extends State<ReportsPage> {
   }
 
   double get _cashCollection {
-    return _filteredInvoices.fold<double>(0.0, (sum, inv) => sum + _numVal(inv['paid_amount']));
+    return _filteredInvoices.fold<double>(
+      0.0,
+      (sum, inv) => sum + _numVal(inv['paid_amount']),
+    );
   }
 
   double get _totalProfit {
-    return _filteredInvoices.fold<double>(0.0, (sum, inv) => sum + _invoiceProfit(inv));
+    return _filteredInvoices.fold<double>(
+      0.0,
+      (sum, inv) => sum + _invoiceProfit(inv),
+    );
   }
 
   // --- Active View Filtered Lists & Labels ---
@@ -168,7 +182,9 @@ class _ReportsPageState extends State<ReportsPage> {
           final no = (inv['invoice_no'] ?? '').toString().toLowerCase();
           final cust = (inv['customer_name'] ?? '').toString().toLowerCase();
           final mode = (inv['payment_method'] ?? '').toString().toLowerCase();
-          return no.contains(query) || cust.contains(query) || mode.contains(query);
+          return no.contains(query) ||
+              cust.contains(query) ||
+              mode.contains(query);
         }).toList();
 
       case ReportView.purchase:
@@ -176,15 +192,21 @@ class _ReportsPageState extends State<ReportsPage> {
           final no = (p['purchase_no'] ?? '').toString().toLowerCase();
           final supp = (p['supplier_name'] ?? '').toString().toLowerCase();
           final notes = (p['notes'] ?? '').toString().toLowerCase();
-          return no.contains(query) || supp.contains(query) || notes.contains(query);
+          return no.contains(query) ||
+              supp.contains(query) ||
+              notes.contains(query);
         }).toList();
 
       case ReportView.stock:
         return baseList.where((prod) {
           final name = (prod['product_name'] ?? '').toString().toLowerCase();
-          final sku = (prod['sku'] ?? prod['barcode'] ?? '').toString().toLowerCase();
+          final sku = (prod['sku'] ?? prod['barcode'] ?? '')
+              .toString()
+              .toLowerCase();
           final cat = (prod['category_name'] ?? '').toString().toLowerCase();
-          return name.contains(query) || sku.contains(query) || cat.contains(query);
+          return name.contains(query) ||
+              sku.contains(query) ||
+              cat.contains(query);
         }).toList();
 
       case ReportView.collections:
@@ -192,7 +214,9 @@ class _ReportsPageState extends State<ReportsPage> {
           final no = (inv['invoice_no'] ?? '').toString().toLowerCase();
           final cust = (inv['customer_name'] ?? '').toString().toLowerCase();
           final mode = (inv['payment_method'] ?? '').toString().toLowerCase();
-          return no.contains(query) || cust.contains(query) || mode.contains(query);
+          return no.contains(query) ||
+              cust.contains(query) ||
+              mode.contains(query);
         }).toList();
 
       case ReportView.profit:
@@ -226,93 +250,147 @@ class _ReportsPageState extends State<ReportsPage> {
 
     switch (_activeView) {
       case ReportView.sales:
-        fileName = 'Sales_Register_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
-        buffer.writeln('Date,Invoice No,Customer,Items,Payment Mode,Gross Amount,Discount,Net Amount,Profit,Status');
+        fileName =
+            'Sales_Register_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
+        buffer.writeln(
+          'Date,Invoice No,Customer,Items,Payment Mode,Gross Amount,Discount,Net Amount,Profit,Status',
+        );
         for (final inv in _filteredInvoices) {
           final date = inv['sale_date']?.toString().split('T').first ?? '-';
           final invNo = inv['invoice_no']?.toString() ?? '-';
-          final customer = (inv['customer_name']?.toString() ?? 'Walk-in Customer').replaceAll(',', ' ');
-          final itemsCount = _numVal(inv['items_count']) > 0 ? _numVal(inv['items_count']).toInt() : 1;
+          final customer =
+              (inv['customer_name']?.toString() ?? 'Walk-in Customer')
+                  .replaceAll(',', ' ');
+          final itemsCount = _numVal(inv['items_count']) > 0
+              ? _numVal(inv['items_count']).toInt()
+              : 1;
           final mode = inv['payment_method']?.toString() ?? 'Cash';
           final gross = _numVal(inv['subtotal'] ?? inv['total_amount']);
           final disc = _numVal(inv['discount']);
           final net = _numVal(inv['total_amount']);
           final profit = _invoiceProfit(inv);
           final status = inv['payment_status']?.toString() ?? 'Paid';
-          buffer.writeln('$date,$invNo,"$customer",$itemsCount,$mode,$gross,$disc,$net,$profit,$status');
+          buffer.writeln(
+            '$date,$invNo,"$customer",$itemsCount,$mode,$gross,$disc,$net,$profit,$status',
+          );
         }
         break;
 
       case ReportView.purchase:
-        fileName = 'Purchase_Orders_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
-        buffer.writeln('Date,Purchase No,Supplier,Subtotal,Tax Amount,Total Amount,Status,Notes');
+        fileName =
+            'Purchase_Orders_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
+        buffer.writeln(
+          'Date,Purchase No,Supplier,Subtotal,Tax Amount,Total Amount,Status,Notes',
+        );
         for (final p in _filteredPurchases) {
           final date = p['purchase_date']?.toString().split('T').first ?? '-';
           final pNo = p['purchase_no']?.toString() ?? '-';
-          final supplier = (p['supplier_name']?.toString() ?? 'General Supplier').replaceAll(',', ' ');
+          final supplier =
+              (p['supplier_name']?.toString() ?? 'General Supplier').replaceAll(
+                ',',
+                ' ',
+              );
           final subtotal = _numVal(p['subtotal']);
           final tax = _numVal(p['tax_amount']);
           final total = _numVal(p['total_amount']);
           final status = 'Received';
           final notes = (p['notes']?.toString() ?? '').replaceAll(',', ' ');
-          buffer.writeln('$date,$pNo,"$supplier",$subtotal,$tax,$total,$status,"$notes"');
+          buffer.writeln(
+            '$date,$pNo,"$supplier",$subtotal,$tax,$total,$status,"$notes"',
+          );
         }
         break;
 
       case ReportView.stock:
-        fileName = 'Stock_Valuation_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
-        buffer.writeln('Product Name,SKU,Category,Stock Qty,Unit,Cost Price,Selling Price,Total Valuation,Status');
+        fileName =
+            'Stock_Valuation_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
+        buffer.writeln(
+          'Product Name,SKU,Category,Stock Qty,Unit,Cost Price,Selling Price,Total Valuation,Status',
+        );
         for (final prod in _filteredProducts) {
-          final name = (prod['product_name']?.toString() ?? '-').replaceAll(',', ' ');
+          final name = (prod['product_name']?.toString() ?? '-').replaceAll(
+            ',',
+            ' ',
+          );
           final sku = prod['sku']?.toString() ?? '-';
-          final cat = (prod['category_name']?.toString() ?? '-').replaceAll(',', ' ');
+          final cat = (prod['category_name']?.toString() ?? '-').replaceAll(
+            ',',
+            ' ',
+          );
           final qty = _numVal(prod['stock_qty']);
           final unit = prod['unit']?.toString() ?? '';
           final cost = _numVal(prod['cost_price'] ?? 0);
           final sell = _numVal(prod['selling_price'] ?? 0);
           final val = qty * (cost > 0 ? cost : sell);
-          final status = qty <= _numVal(prod['reorder_level']) ? 'Low Stock' : 'In Stock';
-          buffer.writeln('"$name",$sku,"$cat",$qty,$unit,$cost,$sell,$val,$status');
+          final status = qty <= _numVal(prod['reorder_level'])
+              ? 'Low Stock'
+              : 'In Stock';
+          buffer.writeln(
+            '"$name",$sku,"$cat",$qty,$unit,$cost,$sell,$val,$status',
+          );
         }
         break;
 
       case ReportView.collections:
-        fileName = 'Collections_Report_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
-        buffer.writeln('Date,Invoice No,Customer,Payment Mode,Total Billed,Collected Amount,Balance Due,Status');
+        fileName =
+            'Collections_Report_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
+        buffer.writeln(
+          'Date,Invoice No,Customer,Payment Mode,Total Billed,Collected Amount,Balance Due,Status',
+        );
         for (final inv in _filteredInvoices) {
           final date = inv['sale_date']?.toString().split('T').first ?? '-';
           final invNo = inv['invoice_no']?.toString() ?? '-';
-          final customer = (inv['customer_name']?.toString() ?? 'Walk-in Customer').replaceAll(',', ' ');
+          final customer =
+              (inv['customer_name']?.toString() ?? 'Walk-in Customer')
+                  .replaceAll(',', ' ');
           final mode = inv['payment_method']?.toString() ?? 'Cash';
           final billed = _numVal(inv['total_amount']);
           final collected = _numVal(inv['paid_amount']);
           final balance = (billed - collected).clamp(0.0, double.infinity);
           final status = inv['payment_status']?.toString() ?? 'Paid';
-          buffer.writeln('$date,$invNo,"$customer",$mode,$billed,$collected,$balance,$status');
+          buffer.writeln(
+            '$date,$invNo,"$customer",$mode,$billed,$collected,$balance,$status',
+          );
         }
         break;
 
       case ReportView.profit:
-        fileName = 'Profit_Analysis_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
-        buffer.writeln('Date,Invoice No,Customer,Revenue,Estimated Cost,Net Profit,Margin %');
+        fileName =
+            'Profit_Analysis_${DateTime.now().toIso8601String().substring(0, 10)}.csv';
+        buffer.writeln(
+          'Date,Invoice No,Customer,Revenue,Estimated Cost,Net Profit,Margin %',
+        );
         for (final inv in _filteredInvoices) {
           final date = inv['sale_date']?.toString().split('T').first ?? '-';
           final invNo = inv['invoice_no']?.toString() ?? '-';
-          final customer = (inv['customer_name']?.toString() ?? 'Walk-in Customer').replaceAll(',', ' ');
+          final customer =
+              (inv['customer_name']?.toString() ?? 'Walk-in Customer')
+                  .replaceAll(',', ' ');
           final rev = _numVal(inv['total_amount']);
           final profit = _invoiceProfit(inv);
           final cost = (rev - profit).clamp(0.0, double.infinity);
-          final marginPct = rev > 0 ? ((profit / rev) * 100).toStringAsFixed(1) : '0';
-          buffer.writeln('$date,$invNo,"$customer",$rev,$cost,$profit,$marginPct%');
+          final marginPct = rev > 0
+              ? ((profit / rev) * 100).toStringAsFixed(1)
+              : '0';
+          buffer.writeln(
+            '$date,$invNo,"$customer",$rev,$cost,$profit,$marginPct%',
+          );
         }
         break;
     }
 
-    final ok = await downloadReceiptSlip(fileName: fileName, htmlContent: buffer.toString());
+    final ok = await downloadReceiptSlip(
+      fileName: fileName,
+      htmlContent: buffer.toString(),
+    );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(ok ? '$_viewTitle exported successfully!' : 'Export is supported in browser mode.'),
+        content: Text(
+          ok
+              ? '$_viewTitle exported successfully!'
+              : 'Export is supported in browser mode.',
+        ),
         backgroundColor: ok ? primaryGreen : Colors.orange,
       ),
     );
@@ -359,7 +437,8 @@ class _ReportsPageState extends State<ReportsPage> {
     String selectedMetricBoxHtml;
     switch (_activeView) {
       case ReportView.sales:
-        selectedMetricBoxHtml = '''
+        selectedMetricBoxHtml =
+            '''
     <div class="selected-card">
       <div class="card-title">Total Sales (Selected Register)</div>
       <div class="card-value">${_currency(_totalSales)}</div>
@@ -368,7 +447,8 @@ class _ReportsPageState extends State<ReportsPage> {
 ''';
         break;
       case ReportView.purchase:
-        selectedMetricBoxHtml = '''
+        selectedMetricBoxHtml =
+            '''
     <div class="selected-card">
       <div class="card-title">Total Purchase (Selected Register)</div>
       <div class="card-value">${_currency(_totalPurchases)}</div>
@@ -377,7 +457,8 @@ class _ReportsPageState extends State<ReportsPage> {
 ''';
         break;
       case ReportView.stock:
-        selectedMetricBoxHtml = '''
+        selectedMetricBoxHtml =
+            '''
     <div class="selected-card">
       <div class="card-title">Total Stock Valuation (Selected Register)</div>
       <div class="card-value">${_currency(_stockValue)}</div>
@@ -386,7 +467,8 @@ class _ReportsPageState extends State<ReportsPage> {
 ''';
         break;
       case ReportView.collections:
-        selectedMetricBoxHtml = '''
+        selectedMetricBoxHtml =
+            '''
     <div class="selected-card">
       <div class="card-title">Cash Collection (Selected Register)</div>
       <div class="card-value">${_currency(_cashCollection)}</div>
@@ -395,7 +477,8 @@ class _ReportsPageState extends State<ReportsPage> {
 ''';
         break;
       case ReportView.profit:
-        selectedMetricBoxHtml = '''
+        selectedMetricBoxHtml =
+            '''
     <div class="selected-card">
       <div class="card-title">Total Net Profit (Selected Register)</div>
       <div class="card-value">${_currency(_totalProfit)}</div>
@@ -413,25 +496,36 @@ class _ReportsPageState extends State<ReportsPage> {
 
     switch (_activeView) {
       case ReportView.sales:
-        buffer.writeln('<table><thead><tr><th>#</th><th>Date</th><th>Invoice No</th><th>Customer</th><th>Items</th><th>Mode</th><th class="right">Gross</th><th class="right">Discount</th><th class="right">Net Amount</th><th class="right">Profit</th></tr></thead><tbody>');
+        buffer.writeln(
+          '<table><thead><tr><th>#</th><th>Date</th><th>Invoice No</th><th>Customer</th><th>Items</th><th>Mode</th><th class="right">Gross</th><th class="right">Discount</th><th class="right">Net Amount</th><th class="right">Profit</th></tr></thead><tbody>',
+        );
         for (int i = 0; i < _filteredInvoices.length; i++) {
           final inv = _filteredInvoices[i];
           final date = inv['sale_date']?.toString().split('T').first ?? '-';
           final invNo = inv['invoice_no']?.toString() ?? '-';
-          final customer = inv['customer_name']?.toString() ?? 'Walk-in Customer';
-          final items = _numVal(inv['items_count']) > 0 ? _numVal(inv['items_count']).toInt() : 1;
+          final customer =
+              inv['customer_name']?.toString() ?? 'Walk-in Customer';
+          final items = _numVal(inv['items_count']) > 0
+              ? _numVal(inv['items_count']).toInt()
+              : 1;
           final mode = inv['payment_method']?.toString() ?? 'Cash';
-          final gross = _currency(_numVal(inv['subtotal'] ?? inv['total_amount']));
+          final gross = _currency(
+            _numVal(inv['subtotal'] ?? inv['total_amount']),
+          );
           final disc = _currency(_numVal(inv['discount']));
           final net = _currency(_numVal(inv['total_amount']));
           final profit = _currency(_invoiceProfit(inv));
-          buffer.writeln('<tr><td>${i+1}</td><td>$date</td><td>$invNo</td><td>$customer</td><td>$items</td><td>$mode</td><td class="right">$gross</td><td class="right">$disc</td><td class="right"><b>$net</b></td><td class="right profit">$profit</td></tr>');
+          buffer.writeln(
+            '<tr><td>${i + 1}</td><td>$date</td><td>$invNo</td><td>$customer</td><td>$items</td><td>$mode</td><td class="right">$gross</td><td class="right">$disc</td><td class="right"><b>$net</b></td><td class="right profit">$profit</td></tr>',
+          );
         }
         buffer.writeln('</tbody></table>');
         break;
 
       case ReportView.purchase:
-        buffer.writeln('<table><thead><tr><th>#</th><th>Date</th><th>Purchase No</th><th>Supplier</th><th class="right">Subtotal</th><th class="right">Tax</th><th class="right">Total Cost</th><th>Status</th><th>Notes</th></tr></thead><tbody>');
+        buffer.writeln(
+          '<table><thead><tr><th>#</th><th>Date</th><th>Purchase No</th><th>Supplier</th><th class="right">Subtotal</th><th class="right">Tax</th><th class="right">Total Cost</th><th>Status</th><th>Notes</th></tr></thead><tbody>',
+        );
         for (int i = 0; i < _filteredPurchases.length; i++) {
           final p = _filteredPurchases[i];
           final date = p['purchase_date']?.toString().split('T').first ?? '-';
@@ -441,13 +535,17 @@ class _ReportsPageState extends State<ReportsPage> {
           final tax = _currency(p['tax_amount']);
           final tot = _currency(p['total_amount']);
           final notes = p['notes']?.toString() ?? '-';
-          buffer.writeln('<tr><td>${i+1}</td><td>$date</td><td>$pNo</td><td>$supplier</td><td class="right">$sub</td><td class="right">$tax</td><td class="right"><b>$tot</b></td><td>Received</td><td>$notes</td></tr>');
+          buffer.writeln(
+            '<tr><td>${i + 1}</td><td>$date</td><td>$pNo</td><td>$supplier</td><td class="right">$sub</td><td class="right">$tax</td><td class="right"><b>$tot</b></td><td>Received</td><td>$notes</td></tr>',
+          );
         }
         buffer.writeln('</tbody></table>');
         break;
 
       case ReportView.stock:
-        buffer.writeln('<table><thead><tr><th>#</th><th>Product Name</th><th>SKU</th><th>Category</th><th>Stock</th><th class="right">Cost</th><th class="right">Selling Price</th><th class="right">Valuation</th><th>Status</th></tr></thead><tbody>');
+        buffer.writeln(
+          '<table><thead><tr><th>#</th><th>Product Name</th><th>SKU</th><th>Category</th><th>Stock</th><th class="right">Cost</th><th class="right">Selling Price</th><th class="right">Valuation</th><th>Status</th></tr></thead><tbody>',
+        );
         for (int i = 0; i < _filteredProducts.length; i++) {
           final prod = _filteredProducts[i];
           final name = prod['product_name']?.toString() ?? '-';
@@ -457,42 +555,63 @@ class _ReportsPageState extends State<ReportsPage> {
           final unit = prod['unit']?.toString() ?? '';
           final cost = _currency(prod['cost_price'] ?? 0);
           final sell = _currency(prod['selling_price'] ?? 0);
-          final val = _currency(qty * _numVal(prod['cost_price'] ?? prod['selling_price'] ?? 0));
-          final status = qty <= _numVal(prod['reorder_level']) ? 'Low Stock' : 'In Stock';
-          buffer.writeln('<tr><td>${i+1}</td><td>$name</td><td>$sku</td><td>$cat</td><td>$qty $unit</td><td class="right">$cost</td><td class="right">$sell</td><td class="right"><b>$val</b></td><td>$status</td></tr>');
+          final val = _currency(
+            qty * _numVal(prod['cost_price'] ?? prod['selling_price'] ?? 0),
+          );
+          final status = qty <= _numVal(prod['reorder_level'])
+              ? 'Low Stock'
+              : 'In Stock';
+          buffer.writeln(
+            '<tr><td>${i + 1}</td><td>$name</td><td>$sku</td><td>$cat</td><td>$qty $unit</td><td class="right">$cost</td><td class="right">$sell</td><td class="right"><b>$val</b></td><td>$status</td></tr>',
+          );
         }
         buffer.writeln('</tbody></table>');
         break;
 
       case ReportView.collections:
-        buffer.writeln('<table><thead><tr><th>#</th><th>Date</th><th>Invoice No</th><th>Customer</th><th>Mode</th><th class="right">Total Billed</th><th class="right">Collected</th><th class="right">Balance Due</th><th>Status</th></tr></thead><tbody>');
+        buffer.writeln(
+          '<table><thead><tr><th>#</th><th>Date</th><th>Invoice No</th><th>Customer</th><th>Mode</th><th class="right">Total Billed</th><th class="right">Collected</th><th class="right">Balance Due</th><th>Status</th></tr></thead><tbody>',
+        );
         for (int i = 0; i < _filteredInvoices.length; i++) {
           final inv = _filteredInvoices[i];
           final date = inv['sale_date']?.toString().split('T').first ?? '-';
           final invNo = inv['invoice_no']?.toString() ?? '-';
-          final customer = inv['customer_name']?.toString() ?? 'Walk-in Customer';
+          final customer =
+              inv['customer_name']?.toString() ?? 'Walk-in Customer';
           final mode = inv['payment_method']?.toString() ?? 'Cash';
           final billed = _currency(_numVal(inv['total_amount']));
           final coll = _currency(_numVal(inv['paid_amount']));
-          final bal = _currency((_numVal(inv['total_amount']) - _numVal(inv['paid_amount'])).clamp(0.0, double.infinity));
+          final bal = _currency(
+            (_numVal(inv['total_amount']) - _numVal(inv['paid_amount'])).clamp(
+              0.0,
+              double.infinity,
+            ),
+          );
           final status = inv['payment_status']?.toString() ?? 'Paid';
-          buffer.writeln('<tr><td>${i+1}</td><td>$date</td><td>$invNo</td><td>$customer</td><td>$mode</td><td class="right">$billed</td><td class="right profit">$coll</td><td class="right">$bal</td><td>$status</td></tr>');
+          buffer.writeln(
+            '<tr><td>${i + 1}</td><td>$date</td><td>$invNo</td><td>$customer</td><td>$mode</td><td class="right">$billed</td><td class="right profit">$coll</td><td class="right">$bal</td><td>$status</td></tr>',
+          );
         }
         buffer.writeln('</tbody></table>');
         break;
 
       case ReportView.profit:
-        buffer.writeln('<table><thead><tr><th>#</th><th>Date</th><th>Invoice No</th><th>Customer</th><th class="right">Revenue</th><th class="right">Est. Cost</th><th class="right">Net Profit</th><th class="right">Margin %</th></tr></thead><tbody>');
+        buffer.writeln(
+          '<table><thead><tr><th>#</th><th>Date</th><th>Invoice No</th><th>Customer</th><th class="right">Revenue</th><th class="right">Est. Cost</th><th class="right">Net Profit</th><th class="right">Margin %</th></tr></thead><tbody>',
+        );
         for (int i = 0; i < _filteredInvoices.length; i++) {
           final inv = _filteredInvoices[i];
           final date = inv['sale_date']?.toString().split('T').first ?? '-';
           final invNo = inv['invoice_no']?.toString() ?? '-';
-          final customer = inv['customer_name']?.toString() ?? 'Walk-in Customer';
+          final customer =
+              inv['customer_name']?.toString() ?? 'Walk-in Customer';
           final rev = _numVal(inv['total_amount']);
           final prof = _invoiceProfit(inv);
           final cost = (rev - prof).clamp(0.0, double.infinity);
           final pct = rev > 0 ? ((prof / rev) * 100).toStringAsFixed(1) : '0';
-          buffer.writeln('<tr><td>${i+1}</td><td>$date</td><td>$invNo</td><td>$customer</td><td class="right">${_currency(rev)}</td><td class="right">${_currency(cost)}</td><td class="right profit">${_currency(prof)}</td><td class="right"><b>$pct%</b></td></tr>');
+          buffer.writeln(
+            '<tr><td>${i + 1}</td><td>$date</td><td>$invNo</td><td>$customer</td><td class="right">${_currency(rev)}</td><td class="right">${_currency(cost)}</td><td class="right profit">${_currency(prof)}</td><td class="right"><b>$pct%</b></td></tr>',
+          );
         }
         buffer.writeln('</tbody></table>');
         break;
@@ -503,8 +622,12 @@ class _ReportsPageState extends State<ReportsPage> {
 </body>
 </html>''');
 
-    final safeFileName = 'Print_${_viewTitle.replaceAll(' ', '_')}_${DateTime.now().toIso8601String().substring(0, 10)}.html';
-    await downloadReceiptSlip(fileName: safeFileName, htmlContent: buffer.toString());
+    final safeFileName =
+        'Print_${_viewTitle.replaceAll(' ', '_')}_${DateTime.now().toIso8601String().substring(0, 10)}.html';
+    await downloadReceiptSlip(
+      fileName: safeFileName,
+      htmlContent: buffer.toString(),
+    );
   }
 
   // --- Clipboard Copy Helper ---
@@ -516,7 +639,11 @@ class _ReportsPageState extends State<ReportsPage> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Text('$label copied to clipboard!'),
           ],
@@ -534,7 +661,10 @@ class _ReportsPageState extends State<ReportsPage> {
     final name = inv['customer_name']?.toString() ?? 'Walk-in Customer';
     final phone = inv['customer_phone']?.toString() ?? 'Not Provided';
     final email = inv['customer_email']?.toString() ?? 'Not Provided';
-    final address = inv['customer_address']?.toString() ?? inv['address']?.toString() ?? 'Not Provided';
+    final address =
+        inv['customer_address']?.toString() ??
+        inv['address']?.toString() ??
+        'Not Provided';
 
     showDialog(
       context: context,
@@ -545,11 +675,25 @@ class _ReportsPageState extends State<ReportsPage> {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.person_outline_rounded, color: primaryBlue, size: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.person_outline_rounded,
+                color: primaryBlue,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
-            const Text('Customer Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: navy)),
+            const Text(
+              'Customer Details',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: navy,
+              ),
+            ),
           ],
         ),
         content: SizedBox(
@@ -582,7 +726,9 @@ class _ReportsPageState extends State<ReportsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryBlue,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Close'),
@@ -595,7 +741,10 @@ class _ReportsPageState extends State<ReportsPage> {
   // --- Supplier Info Modal ---
   void _showSupplierInfoDialog(dynamic p) {
     final name = p['supplier_name']?.toString() ?? 'General Supplier';
-    final phone = p['supplier_phone']?.toString() ?? p['phone']?.toString() ?? 'Not Provided';
+    final phone =
+        p['supplier_phone']?.toString() ??
+        p['phone']?.toString() ??
+        'Not Provided';
     final email = p['supplier_email']?.toString() ?? 'Not Provided';
     final notes = p['notes']?.toString() ?? 'Stock replenishments';
 
@@ -608,11 +757,25 @@ class _ReportsPageState extends State<ReportsPage> {
           children: [
             Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.local_shipping_outlined, color: primaryGreen, size: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFDCFCE7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(
+                Icons.local_shipping_outlined,
+                color: primaryGreen,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
-            const Text('Supplier Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: navy)),
+            const Text(
+              'Supplier Details',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: navy,
+              ),
+            ),
           ],
         ),
         content: SizedBox(
@@ -645,7 +808,9 @@ class _ReportsPageState extends State<ReportsPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: primaryGreen,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () => Navigator.pop(ctx),
             child: const Text('Close'),
@@ -672,25 +837,33 @@ class _ReportsPageState extends State<ReportsPage> {
 
     List<Map<String, dynamic>> itemsList = [];
     if (inv['items'] is List && (inv['items'] as List).isNotEmpty) {
-      itemsList = (inv['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+      itemsList = (inv['items'] as List)
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
     } else if (inv['id'] != null) {
       try {
         final res = await _api.get('/billing/invoices/${inv['id']}');
         if (res['data'] != null && res['data']['items'] is List) {
-          itemsList = (res['data']['items'] as List).whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList();
+          itemsList = (res['data']['items'] as List)
+              .whereType<Map>()
+              .map((e) => Map<String, dynamic>.from(e))
+              .toList();
         }
       } catch (_) {}
     }
 
     if (itemsList.isEmpty) {
-      final itemsCount = _numVal(inv['items_count']) > 0 ? _numVal(inv['items_count']).toInt() : 1;
+      final itemsCount = _numVal(inv['items_count']) > 0
+          ? _numVal(inv['items_count']).toInt()
+          : 1;
       itemsList = [
         {
           'product_name': 'Paint & Store Retail Items',
           'quantity': itemsCount,
           'unit_price': (total / itemsCount).toStringAsFixed(2),
           'line_total': total.toStringAsFixed(2),
-        }
+        },
       ];
     }
 
@@ -734,7 +907,8 @@ class _ReportsPageState extends State<ReportsPage> {
       );
     }
 
-    final safeFileName = '${isA4 ? 'TaxInvoice' : 'Slip'}_${invNo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
+    final safeFileName =
+        '${isA4 ? 'TaxInvoice' : 'Slip'}_${invNo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
     await downloadReceiptSlip(fileName: safeFileName, htmlContent: html);
   }
 
@@ -758,7 +932,8 @@ class _ReportsPageState extends State<ReportsPage> {
       notes: notes,
     );
 
-    final safeFileName = 'Voucher_${pNo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
+    final safeFileName =
+        'Voucher_${pNo.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_')}.html';
     await downloadReceiptSlip(fileName: safeFileName, htmlContent: html);
   }
 
@@ -996,7 +1171,11 @@ class _ReportsPageState extends State<ReportsPage> {
       tooltip: 'Invoice Actions',
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 6,
-      icon: const Icon(Icons.more_vert_rounded, size: 18, color: Color(0xFF64748B)),
+      icon: const Icon(
+        Icons.more_vert_rounded,
+        size: 18,
+        color: Color(0xFF64748B),
+      ),
       onSelected: (val) {
         switch (val) {
           case 'view':
@@ -1009,7 +1188,10 @@ class _ReportsPageState extends State<ReportsPage> {
             _printSingleInvoiceSlip(inv, isA4: true);
             break;
           case 'copy_no':
-            _copyToClipboard(inv['invoice_no']?.toString() ?? '', 'Invoice Number');
+            _copyToClipboard(
+              inv['invoice_no']?.toString() ?? '',
+              'Invoice Number',
+            );
             break;
           case 'customer':
             _showCustomerInfoDialog(inv);
@@ -1023,7 +1205,10 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Icon(Icons.visibility_outlined, size: 16, color: primaryBlue),
               SizedBox(width: 10),
-              Text('View Details', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              Text(
+                'View Details',
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              ),
             ],
           ),
         ),
@@ -1034,7 +1219,10 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Icon(Icons.receipt_long_rounded, size: 16, color: primaryGreen),
               SizedBox(width: 10),
-              Text('Print Thermal Slip (80mm)', style: TextStyle(fontSize: 12.5)),
+              Text(
+                'Print Thermal Slip (80mm)',
+                style: TextStyle(fontSize: 12.5),
+              ),
             ],
           ),
         ),
@@ -1063,7 +1251,11 @@ class _ReportsPageState extends State<ReportsPage> {
           value: 'customer',
           child: Row(
             children: [
-              Icon(Icons.person_outline_rounded, size: 16, color: Color(0xFF475569)),
+              Icon(
+                Icons.person_outline_rounded,
+                size: 16,
+                color: Color(0xFF475569),
+              ),
               SizedBox(width: 10),
               Text('Customer Info', style: TextStyle(fontSize: 12.5)),
             ],
@@ -1080,7 +1272,11 @@ class _ReportsPageState extends State<ReportsPage> {
       tooltip: 'Purchase Actions',
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 6,
-      icon: const Icon(Icons.more_vert_rounded, size: 18, color: Color(0xFF64748B)),
+      icon: const Icon(
+        Icons.more_vert_rounded,
+        size: 18,
+        color: Color(0xFF64748B),
+      ),
       onSelected: (val) {
         switch (val) {
           case 'view':
@@ -1090,7 +1286,10 @@ class _ReportsPageState extends State<ReportsPage> {
             _printSinglePurchaseVoucher(p);
             break;
           case 'copy_po':
-            _copyToClipboard(p['purchase_no']?.toString() ?? '', 'Purchase PO Number');
+            _copyToClipboard(
+              p['purchase_no']?.toString() ?? '',
+              'Purchase PO Number',
+            );
             break;
           case 'supplier':
             _showSupplierInfoDialog(p);
@@ -1104,7 +1303,10 @@ class _ReportsPageState extends State<ReportsPage> {
             children: [
               Icon(Icons.visibility_outlined, size: 16, color: primaryGreen),
               SizedBox(width: 10),
-              Text('View Details', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+              Text(
+                'View Details',
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              ),
             ],
           ),
         ),
@@ -1134,7 +1336,11 @@ class _ReportsPageState extends State<ReportsPage> {
           value: 'supplier',
           child: Row(
             children: [
-              Icon(Icons.local_shipping_outlined, size: 16, color: Color(0xFF475569)),
+              Icon(
+                Icons.local_shipping_outlined,
+                size: 16,
+                color: Color(0xFF475569),
+              ),
               SizedBox(width: 10),
               Text('Supplier Info', style: TextStyle(fontSize: 12.5)),
             ],
@@ -1171,21 +1377,45 @@ class _ReportsPageState extends State<ReportsPage> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: const Color(0xFFE0EDFF), borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.receipt_long_rounded, color: primaryBlue, size: 22),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0EDFF),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.receipt_long_rounded,
+                    color: primaryBlue,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Invoice $invNo', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: navy)),
-                    Text('Date: $date', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text(
+                      'Invoice $invNo',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: navy,
+                      ),
+                    ),
+                    Text(
+                      'Date: $date',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF64748B)),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 20,
+                color: Color(0xFF64748B),
+              ),
               onPressed: () => Navigator.pop(ctx),
             ),
           ],
@@ -1214,7 +1444,11 @@ class _ReportsPageState extends State<ReportsPage> {
                     _detailRow('Gross Subtotal', _currency(gross)),
                     if (disc > 0) ...[
                       const SizedBox(height: 6),
-                      _detailRow('Discount', '- ${_currency(disc)}', valueColor: Colors.red),
+                      _detailRow(
+                        'Discount',
+                        '- ${_currency(disc)}',
+                        valueColor: Colors.red,
+                      ),
                     ],
                     if (tax > 0) ...[
                       const SizedBox(height: 6),
@@ -1225,7 +1459,12 @@ class _ReportsPageState extends State<ReportsPage> {
                     const SizedBox(height: 6),
                     _detailRow('Paid Amount', _currency(paid)),
                     const Divider(height: 20, color: cardBorder),
-                    _detailRow('Estimated Margin / Profit', _currency(profit), valueColor: primaryGreen, isBold: true),
+                    _detailRow(
+                      'Estimated Margin / Profit',
+                      _currency(profit),
+                      valueColor: primaryGreen,
+                      isBold: true,
+                    ),
                   ],
                 ),
               ),
@@ -1237,7 +1476,9 @@ class _ReportsPageState extends State<ReportsPage> {
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: cardBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Close'),
           ),
@@ -1267,21 +1508,45 @@ class _ReportsPageState extends State<ReportsPage> {
               children: [
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(10)),
-                  child: const Icon(Icons.shopping_cart_outlined, color: primaryGreen, size: 22),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFDCFCE7),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.shopping_cart_outlined,
+                    color: primaryGreen,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Purchase Order $pNo', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: navy)),
-                    Text('Date: $date', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                    Text(
+                      'Purchase Order $pNo',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: navy,
+                      ),
+                    ),
+                    Text(
+                      'Date: $date',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF64748B),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
             IconButton(
-              icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF64748B)),
+              icon: const Icon(
+                Icons.close_rounded,
+                size: 20,
+                color: Color(0xFF64748B),
+              ),
               onPressed: () => Navigator.pop(ctx),
             ),
           ],
@@ -1303,7 +1568,11 @@ class _ReportsPageState extends State<ReportsPage> {
                   children: [
                     _detailRow('Supplier', supplier),
                     const SizedBox(height: 8),
-                    _detailRow('Status', 'Received / In Stock', valueColor: primaryGreen),
+                    _detailRow(
+                      'Status',
+                      'Received / In Stock',
+                      valueColor: primaryGreen,
+                    ),
                     const SizedBox(height: 8),
                     _detailRow('Notes', notes),
                     const Divider(height: 20, color: cardBorder),
@@ -1313,7 +1582,12 @@ class _ReportsPageState extends State<ReportsPage> {
                       _detailRow('Tax / GST', '+ ${_currency(tax)}'),
                     ],
                     const Divider(height: 20, color: cardBorder),
-                    _detailRow('Total Cost', _currency(total), isBold: true, valueColor: navy),
+                    _detailRow(
+                      'Total Cost',
+                      _currency(total),
+                      isBold: true,
+                      valueColor: navy,
+                    ),
                   ],
                 ),
               ),
@@ -1325,7 +1599,9 @@ class _ReportsPageState extends State<ReportsPage> {
             onPressed: () => Navigator.pop(ctx),
             style: OutlinedButton.styleFrom(
               side: const BorderSide(color: cardBorder),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Close'),
           ),
@@ -1334,11 +1610,19 @@ class _ReportsPageState extends State<ReportsPage> {
     );
   }
 
-  Widget _detailRow(String label, String value, {bool isBold = false, Color? valueColor}) {
+  Widget _detailRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    Color? valueColor,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        ),
         Text(
           value,
           style: TextStyle(
@@ -1369,7 +1653,10 @@ class _ReportsPageState extends State<ReportsPage> {
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: _loadData,
-              style: ElevatedButton.styleFrom(backgroundColor: primaryBlue, foregroundColor: Colors.white),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryBlue,
+                foregroundColor: Colors.white,
+              ),
               child: const Text('Retry'),
             ),
           ],
@@ -1415,26 +1702,42 @@ class _ReportsPageState extends State<ReportsPage> {
             OutlinedButton.icon(
               onPressed: _exportCurrentReport,
               icon: const Icon(Icons.file_download_outlined, size: 16),
-              label: const Text('Export CSV', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              label: const Text(
+                'Export CSV',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: navy,
                 side: const BorderSide(color: cardBorder),
                 backgroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
               onPressed: _printCurrentReport,
               icon: const Icon(Icons.print_outlined, size: 16),
-              label: const Text('Print Report', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              label: const Text(
+                'Print Report',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              ),
               style: OutlinedButton.styleFrom(
                 foregroundColor: navy,
                 side: const BorderSide(color: cardBorder),
                 backgroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],
@@ -1445,21 +1748,31 @@ class _ReportsPageState extends State<ReportsPage> {
 
   Color get _activeColor {
     switch (_activeView) {
-      case ReportView.sales: return const Color(0xFF2563EB);
-      case ReportView.purchase: return const Color(0xFF16A34A);
-      case ReportView.stock: return const Color(0xFFD97706);
-      case ReportView.collections: return const Color(0xFF9333EA);
-      case ReportView.profit: return const Color(0xFF0D9488);
+      case ReportView.sales:
+        return const Color(0xFF2563EB);
+      case ReportView.purchase:
+        return const Color(0xFF16A34A);
+      case ReportView.stock:
+        return const Color(0xFFD97706);
+      case ReportView.collections:
+        return const Color(0xFF9333EA);
+      case ReportView.profit:
+        return const Color(0xFF0D9488);
     }
   }
 
   IconData get _activeIcon {
     switch (_activeView) {
-      case ReportView.sales: return Icons.local_mall_outlined;
-      case ReportView.purchase: return Icons.shopping_cart_outlined;
-      case ReportView.stock: return Icons.inventory_2_outlined;
-      case ReportView.collections: return Icons.account_balance_wallet_outlined;
-      case ReportView.profit: return Icons.trending_up_rounded;
+      case ReportView.sales:
+        return Icons.local_mall_outlined;
+      case ReportView.purchase:
+        return Icons.shopping_cart_outlined;
+      case ReportView.stock:
+        return Icons.inventory_2_outlined;
+      case ReportView.collections:
+        return Icons.account_balance_wallet_outlined;
+      case ReportView.profit:
+        return Icons.trending_up_rounded;
     }
   }
 
@@ -1486,7 +1799,8 @@ class _ReportsPageState extends State<ReportsPage> {
         }
 
         final double totalSpacing = (columns - 1) * 12.0;
-        final double cardWidth = (constraints.maxWidth - totalSpacing) / columns;
+        final double cardWidth =
+            (constraints.maxWidth - totalSpacing) / columns;
 
         final cards = [
           _buildClickableMetricCard(
@@ -1522,7 +1836,8 @@ class _ReportsPageState extends State<ReportsPage> {
           _buildClickableMetricCard(
             title: 'Cash Collection',
             value: _currency(_cashCollection),
-            trend: '${_totalSales > 0 ? ((_cashCollection / _totalSales) * 100).toStringAsFixed(0) : 100}% collected',
+            trend:
+                '${_totalSales > 0 ? ((_cashCollection / _totalSales) * 100).toStringAsFixed(0) : 100}% collected',
             icon: Icons.account_balance_wallet_outlined,
             iconBg: const Color(0xFFF3E8FF),
             iconColor: const Color(0xFF9333EA),
@@ -1532,7 +1847,8 @@ class _ReportsPageState extends State<ReportsPage> {
           _buildClickableMetricCard(
             title: 'Total Profit',
             value: _currency(_totalProfit),
-            trend: '${_totalSales > 0 ? ((_totalProfit / _totalSales) * 100).toStringAsFixed(1) : 0}% net margin',
+            trend:
+                '${_totalSales > 0 ? ((_totalProfit / _totalSales) * 100).toStringAsFixed(1) : 0}% net margin',
             icon: Icons.trending_up_rounded,
             iconBg: const Color(0xFFCCFBF1),
             iconColor: const Color(0xFF0D9488),
@@ -1544,7 +1860,9 @@ class _ReportsPageState extends State<ReportsPage> {
         return Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: cards.map((c) => SizedBox(width: cardWidth, child: c)).toList(),
+          children: cards
+              .map((c) => SizedBox(width: cardWidth, child: c))
+              .toList(),
         );
       },
     );
@@ -1601,7 +1919,9 @@ class _ReportsPageState extends State<ReportsPage> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11.5,
-                        fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                        fontWeight: isActive
+                            ? FontWeight.w800
+                            : FontWeight.w600,
                         color: isActive ? navy : const Color(0xFF64748B),
                       ),
                     ),
@@ -1609,7 +1929,10 @@ class _ReportsPageState extends State<ReportsPage> {
                   if (isActive) ...[
                     const SizedBox(width: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 5,
+                        vertical: 1.5,
+                      ),
                       decoration: BoxDecoration(
                         color: iconColor,
                         borderRadius: BorderRadius.circular(6),
@@ -1663,7 +1986,9 @@ class _ReportsPageState extends State<ReportsPage> {
     final totalEntries = activeList.length;
     final startIndex = (_currentPage - 1) * _rowsPerPage;
     final endIndex = (startIndex + _rowsPerPage).clamp(0, totalEntries);
-    final pageItems = totalEntries > 0 ? activeList.sublist(startIndex, endIndex) : [];
+    final pageItems = totalEntries > 0
+        ? activeList.sublist(startIndex, endIndex)
+        : [];
 
     return Container(
       decoration: BoxDecoration(
@@ -1696,18 +2021,29 @@ class _ReportsPageState extends State<ReportsPage> {
                     const SizedBox(width: 10),
                     Text(
                       _viewTitle,
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: navy),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: navy,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF1F5F9),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
                         '$totalEntries entries',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF64748B)),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
+                        ),
                       ),
                     ),
                   ],
@@ -1717,6 +2053,7 @@ class _ReportsPageState extends State<ReportsPage> {
                   height: 36,
                   child: TextField(
                     controller: _reportSearchCtrl,
+                    inputFormatters: const [NoLeadingSpaceFormatter()],
                     onChanged: (val) => setState(() {
                       _reportSearch = val;
                       _currentPage = 1;
@@ -1724,11 +2061,22 @@ class _ReportsPageState extends State<ReportsPage> {
                     style: const TextStyle(fontSize: 12.5, color: navy),
                     decoration: InputDecoration(
                       hintText: 'Search $_viewTitle...',
-                      hintStyle: const TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
-                      prefixIcon: const Icon(Icons.search_rounded, size: 17, color: Color(0xFF64748B)),
+                      hintStyle: const TextStyle(
+                        fontSize: 12,
+                        color: Color(0xFF94A3B8),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        size: 17,
+                        color: Color(0xFF64748B),
+                      ),
                       suffixIcon: _reportSearch.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear_rounded, size: 15, color: Color(0xFF64748B)),
+                              icon: const Icon(
+                                Icons.clear_rounded,
+                                size: 15,
+                                color: Color(0xFF64748B),
+                              ),
                               padding: EdgeInsets.zero,
                               onPressed: () {
                                 _reportSearchCtrl.clear();
@@ -1742,10 +2090,25 @@ class _ReportsPageState extends State<ReportsPage> {
                       filled: true,
                       fillColor: const Color(0xFFF8FAFC),
                       isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: cardBorder)),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: cardBorder)),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: const BorderSide(color: primaryBlue, width: 1.5)),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: cardBorder),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: cardBorder),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: primaryBlue,
+                          width: 1.5,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -1757,7 +2120,9 @@ class _ReportsPageState extends State<ReportsPage> {
           LayoutBuilder(
             builder: (context, constraints) {
               const minWidth = 1000.0;
-              final tableWidth = constraints.maxWidth > minWidth ? constraints.maxWidth : minWidth;
+              final tableWidth = constraints.maxWidth > minWidth
+                  ? constraints.maxWidth
+                  : minWidth;
 
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -1777,7 +2142,10 @@ class _ReportsPageState extends State<ReportsPage> {
             Padding(
               padding: const EdgeInsets.all(32),
               child: Center(
-                child: Text('No entries found for $_viewTitle', style: const TextStyle(color: Color(0xFF64748B))),
+                child: Text(
+                  'No entries found for $_viewTitle',
+                  style: const TextStyle(color: Color(0xFF64748B)),
+                ),
               ),
             ),
           const Divider(height: 1, color: cardBorder),
@@ -1792,7 +2160,10 @@ class _ReportsPageState extends State<ReportsPage> {
                   totalEntries == 0
                       ? 'Showing 0 entries'
                       : 'Showing ${startIndex + 1} to $endIndex of $totalEntries entries',
-                  style: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF64748B),
+                  ),
                 ),
                 Row(
                   children: [
@@ -1807,8 +2178,19 @@ class _ReportsPageState extends State<ReportsPage> {
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<int>(
                           value: _rowsPerPage,
-                          style: const TextStyle(fontSize: 12, color: navy, fontWeight: FontWeight.w500),
-                          items: [10, 25, 50].map((n) => DropdownMenuItem(value: n, child: Text('$n per page'))).toList(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: navy,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          items: [10, 25, 50]
+                              .map(
+                                (n) => DropdownMenuItem(
+                                  value: n,
+                                  child: Text('$n per page'),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (v) {
                             if (v != null) {
                               setState(() {
@@ -1823,7 +2205,9 @@ class _ReportsPageState extends State<ReportsPage> {
                     const SizedBox(width: 12),
                     IconButton(
                       icon: const Icon(Icons.chevron_left_rounded, size: 20),
-                      onPressed: _currentPage > 1 ? () => setState(() => _currentPage--) : null,
+                      onPressed: _currentPage > 1
+                          ? () => setState(() => _currentPage--)
+                          : null,
                       color: const Color(0xFF64748B),
                     ),
                     Container(
@@ -1834,11 +2218,20 @@ class _ReportsPageState extends State<ReportsPage> {
                         color: _activeColor,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text('$_currentPage', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        '$_currentPage',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     IconButton(
                       icon: const Icon(Icons.chevron_right_rounded, size: 20),
-                      onPressed: endIndex < totalEntries ? () => setState(() => _currentPage++) : null,
+                      onPressed: endIndex < totalEntries
+                          ? () => setState(() => _currentPage++)
+                          : null,
                       color: const Color(0xFF64748B),
                     ),
                   ],
@@ -1877,18 +2270,135 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       child: const Row(
         children: [
-          SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Invoice No.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Customer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 55, child: Text('Items', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 80, child: Text('Mode', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Gross', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Discount', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Net Amount', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Profit', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '#',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              'Date',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Invoice No.',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Customer',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 55,
+            child: Text(
+              'Items',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 80,
+            child: Text(
+              'Mode',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Gross',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Discount',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Net Amount',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Profit',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
           SizedBox(width: 14),
-          SizedBox(width: 44, child: Text('Action', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 44,
+            child: Text(
+              'Action',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1904,17 +2414,122 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       child: const Row(
         children: [
-          SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Purchase No.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Supplier', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Subtotal', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Tax', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Total Cost', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text('Status', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Notes / Remarks', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '#',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              'Date',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Purchase No.',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Supplier',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Subtotal',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Tax',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Total Cost',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              'Status',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Notes / Remarks',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
           SizedBox(width: 14),
-          SizedBox(width: 44, child: Text('Action', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 44,
+            child: Text(
+              'Action',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1930,17 +2545,123 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       child: const Row(
         children: [
-          SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 4, child: Text('Product Name', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('SKU / Barcode', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Category', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 75, child: Text('Stock Qty', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 60, child: Text('Unit', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Cost Price', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Selling Price', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Total Valuation', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '#',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              'Product Name',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'SKU / Barcode',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Category',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 75,
+            child: Text(
+              'Stock Qty',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 60,
+            child: Text(
+              'Unit',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Cost Price',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Selling Price',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Total Valuation',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
           SizedBox(width: 14),
-          SizedBox(width: 95, child: Text('Status', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 95,
+            child: Text(
+              'Status',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1956,17 +2677,123 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       child: const Row(
         children: [
-          SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Invoice No.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Customer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 80, child: Text('Mode', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Total Billed', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Collected', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Balance Due', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text('Status', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '#',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              'Date',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Invoice No.',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Customer',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 80,
+            child: Text(
+              'Mode',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Total Billed',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Collected',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Balance Due',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              'Status',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
           SizedBox(width: 14),
-          SizedBox(width: 44, child: Text('Action', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 44,
+            child: Text(
+              'Action',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -1982,17 +2809,123 @@ class _ReportsPageState extends State<ReportsPage> {
       ),
       child: const Row(
         children: [
-          SizedBox(width: 32, child: Text('#', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text('Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Invoice No.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 3, child: Text('Customer', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 55, child: Text('Items', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Revenue', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Est. Cost', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text('Net Profit', textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 85, child: Text('Margin %', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '#',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(
+              'Date',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Invoice No.',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              'Customer',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 55,
+            child: Text(
+              'Items',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Revenue',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Est. Cost',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              'Net Profit',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 85,
+            child: Text(
+              'Margin %',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
           SizedBox(width: 14),
-          SizedBox(width: 44, child: Text('Action', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Color(0xFF64748B)))),
+          SizedBox(
+            width: 44,
+            child: Text(
+              'Action',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+                color: Color(0xFF64748B),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -2040,35 +2973,113 @@ class _ReportsPageState extends State<ReportsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: isLast ? Colors.transparent : const Color(0xFFF1F5F9))),
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : const Color(0xFFF1F5F9),
+          ),
+        ),
       ),
       child: Row(
         children: [
-          SizedBox(width: 32, child: Text('$rowNum', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text(date, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 3, child: Text(invNo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: navy), overflow: TextOverflow.ellipsis)),
-          Expanded(flex: 3, child: Text(customer, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$rowNum',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(date, style: const TextStyle(fontSize: 12)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              invNo,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: navy,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              customer,
+              style: const TextStyle(fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           SizedBox(
             width: 55,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
-                child: Text('$itemsCount', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: navy)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$itemsCount',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: navy,
+                  ),
+                ),
               ),
             ),
           ),
           SizedBox(width: 80, child: Center(child: _buildPaymentBadge(mode))),
-          Expanded(flex: 2, child: Text(_currency(gross), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 2, child: Text(discount > 0 ? _currency(discount) : '₹0.00', textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: discount > 0 ? Colors.red : const Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text(_currency(net), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: navy))),
-          Expanded(flex: 2, child: Text(_currency(profit), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, color: primaryGreen, fontWeight: FontWeight.w700))),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(gross),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              discount > 0 ? _currency(discount) : '₹0.00',
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 12,
+                color: discount > 0 ? Colors.red : const Color(0xFF64748B),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(net),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: navy,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(profit),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 12,
+                color: primaryGreen,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           const SizedBox(width: 14),
           SizedBox(
             width: 44,
-            child: Center(
-              child: _buildInvoiceActionsMenu(inv),
-            ),
+            child: Center(child: _buildInvoiceActionsMenu(inv)),
           ),
         ],
       ),
@@ -2089,34 +3100,105 @@ class _ReportsPageState extends State<ReportsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: isLast ? Colors.transparent : const Color(0xFFF1F5F9))),
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : const Color(0xFFF1F5F9),
+          ),
+        ),
       ),
       child: Row(
         children: [
-          SizedBox(width: 32, child: Text('$rowNum', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text(date, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 3, child: Text(pNo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: navy), overflow: TextOverflow.ellipsis)),
-          Expanded(flex: 3, child: Text(supplier, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
-          Expanded(flex: 2, child: Text(_currency(subtotal), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 2, child: Text(_currency(tax), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 2, child: Text(_currency(total), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: navy))),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$rowNum',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(date, style: const TextStyle(fontSize: 12)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              pNo,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: navy,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              supplier,
+              style: const TextStyle(fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(subtotal),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(tax),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(total),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: navy,
+              ),
+            ),
+          ),
           SizedBox(
             width: 90,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFDCFCE7), borderRadius: BorderRadius.circular(4)),
-                child: const Text('Received', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Text(
+                  'Received',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF16A34A),
+                  ),
+                ),
               ),
             ),
           ),
-          Expanded(flex: 3, child: Text(notes, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)), overflow: TextOverflow.ellipsis)),
+          Expanded(
+            flex: 3,
+            child: Text(
+              notes,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           const SizedBox(width: 14),
           SizedBox(
             width: 44,
-            child: Center(
-              child: _buildPurchaseActionsMenu(p),
-            ),
+            child: Center(child: _buildPurchaseActionsMenu(p)),
           ),
         ],
       ),
@@ -2139,23 +3221,65 @@ class _ReportsPageState extends State<ReportsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: isLast ? Colors.transparent : const Color(0xFFF1F5F9))),
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : const Color(0xFFF1F5F9),
+          ),
+        ),
       ),
       child: Row(
         children: [
-          SizedBox(width: 32, child: Text('$rowNum', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 4, child: Text(name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: navy), overflow: TextOverflow.ellipsis)),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$rowNum',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              name,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: navy,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           Expanded(
             flex: 3,
             child: Row(
               children: [
-                const Icon(Icons.qr_code_2_rounded, size: 14, color: Color(0xFF94A3B8)),
+                const Icon(
+                  Icons.qr_code_2_rounded,
+                  size: 14,
+                  color: Color(0xFF94A3B8),
+                ),
                 const SizedBox(width: 4),
-                Expanded(child: Text(sku, style: const TextStyle(fontSize: 11.5, fontFamily: 'monospace', color: Color(0xFF475569)), overflow: TextOverflow.ellipsis)),
+                Expanded(
+                  child: Text(
+                    sku,
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontFamily: 'monospace',
+                      color: Color(0xFF475569),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
           ),
-          Expanded(flex: 3, child: Text(cat, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)), overflow: TextOverflow.ellipsis)),
+          Expanded(
+            flex: 3,
+            child: Text(
+              cat,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           SizedBox(
             width: 75,
             child: Center(
@@ -2169,10 +3293,46 @@ class _ReportsPageState extends State<ReportsPage> {
               ),
             ),
           ),
-          SizedBox(width: 60, child: Center(child: Text(unit, style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))))),
-          Expanded(flex: 2, child: Text(_currency(cost), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 2, child: Text(_currency(sell), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 3, child: Text(_currency(val), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFD97706)))),
+          SizedBox(
+            width: 60,
+            child: Center(
+              child: Text(
+                unit,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: Color(0xFF64748B),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(cost),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(sell),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              _currency(val),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFD97706),
+              ),
+            ),
+          ),
           const SizedBox(width: 14),
           SizedBox(
             width: 95,
@@ -2180,7 +3340,9 @@ class _ReportsPageState extends State<ReportsPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isLowStock ? const Color(0xFFFEE2E2) : const Color(0xFFDCFCE7),
+                  color: isLowStock
+                      ? const Color(0xFFFEE2E2)
+                      : const Color(0xFFDCFCE7),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -2214,23 +3376,76 @@ class _ReportsPageState extends State<ReportsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: isLast ? Colors.transparent : const Color(0xFFF1F5F9))),
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : const Color(0xFFF1F5F9),
+          ),
+        ),
       ),
       child: Row(
         children: [
-          SizedBox(width: 32, child: Text('$rowNum', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text(date, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 3, child: Text(invNo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: navy), overflow: TextOverflow.ellipsis)),
-          Expanded(flex: 3, child: Text(customer, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$rowNum',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(date, style: const TextStyle(fontSize: 12)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              invNo,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: navy,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              customer,
+              style: const TextStyle(fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           SizedBox(width: 80, child: Center(child: _buildPaymentBadge(mode))),
-          Expanded(flex: 2, child: Text(_currency(billed), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 2, child: Text(_currency(collected), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryGreen))),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(billed),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(collected),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: primaryGreen,
+              ),
+            ),
+          ),
           Expanded(
             flex: 2,
             child: Text(
               balance > 0 ? _currency(balance) : '₹0.00',
               textAlign: TextAlign.right,
-              style: TextStyle(fontSize: 12, fontWeight: balance > 0 ? FontWeight.bold : FontWeight.normal, color: balance > 0 ? Colors.red : const Color(0xFF64748B)),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: balance > 0 ? FontWeight.bold : FontWeight.normal,
+                color: balance > 0 ? Colors.red : const Color(0xFF64748B),
+              ),
             ),
           ),
           SizedBox(
@@ -2239,7 +3454,9 @@ class _ReportsPageState extends State<ReportsPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: status.toLowerCase() == 'paid' ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                  color: status.toLowerCase() == 'paid'
+                      ? const Color(0xFFDCFCE7)
+                      : const Color(0xFFFEF3C7),
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
@@ -2247,7 +3464,9 @@ class _ReportsPageState extends State<ReportsPage> {
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
-                    color: status.toLowerCase() == 'paid' ? const Color(0xFF16A34A) : const Color(0xFFD97706),
+                    color: status.toLowerCase() == 'paid'
+                        ? const Color(0xFF16A34A)
+                        : const Color(0xFFD97706),
                   ),
                 ),
               ),
@@ -2256,9 +3475,7 @@ class _ReportsPageState extends State<ReportsPage> {
           const SizedBox(width: 14),
           SizedBox(
             width: 44,
-            child: Center(
-              child: _buildInvoiceActionsMenu(inv),
-            ),
+            child: Center(child: _buildInvoiceActionsMenu(inv)),
           ),
         ],
       ),
@@ -2275,50 +3492,126 @@ class _ReportsPageState extends State<ReportsPage> {
     final revenue = _numVal(inv['total_amount']);
     final profit = _invoiceProfit(inv);
     final cost = (revenue - profit).clamp(0.0, double.infinity);
-    final marginPct = revenue > 0 ? ((profit / revenue) * 100).toStringAsFixed(1) : '0';
+    final marginPct = revenue > 0
+        ? ((profit / revenue) * 100).toStringAsFixed(1)
+        : '0';
 
     return Container(
       height: 48,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: isLast ? Colors.transparent : const Color(0xFFF1F5F9))),
+        border: Border(
+          bottom: BorderSide(
+            color: isLast ? Colors.transparent : const Color(0xFFF1F5F9),
+          ),
+        ),
       ),
       child: Row(
         children: [
-          SizedBox(width: 32, child: Text('$rowNum', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          SizedBox(width: 90, child: Text(date, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 3, child: Text(invNo, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: navy), overflow: TextOverflow.ellipsis)),
-          Expanded(flex: 3, child: Text(customer, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+          SizedBox(
+            width: 32,
+            child: Text(
+              '$rowNum',
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          ),
+          SizedBox(
+            width: 90,
+            child: Text(date, style: const TextStyle(fontSize: 12)),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              invNo,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: navy,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              customer,
+              style: const TextStyle(fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
           SizedBox(
             width: 55,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFF1F5F9), borderRadius: BorderRadius.circular(10)),
-                child: Text('$itemsCount', style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: navy)),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$itemsCount',
+                  style: const TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    color: navy,
+                  ),
+                ),
               ),
             ),
           ),
-          Expanded(flex: 2, child: Text(_currency(revenue), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12))),
-          Expanded(flex: 2, child: Text(_currency(cost), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)))),
-          Expanded(flex: 2, child: Text(_currency(profit), textAlign: TextAlign.right, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primaryGreen))),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(revenue),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(cost),
+              textAlign: TextAlign.right,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              _currency(profit),
+              textAlign: TextAlign.right,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: primaryGreen,
+              ),
+            ),
+          ),
           SizedBox(
             width: 85,
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(color: const Color(0xFFCCFBF1), borderRadius: BorderRadius.circular(10)),
-                child: Text('$marginPct%', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0D9488))),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCCFBF1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$marginPct%',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D9488),
+                  ),
+                ),
               ),
             ),
           ),
           const SizedBox(width: 14),
           SizedBox(
             width: 44,
-            child: Center(
-              child: _buildInvoiceActionsMenu(inv),
-            ),
+            child: Center(child: _buildInvoiceActionsMenu(inv)),
           ),
         ],
       ),

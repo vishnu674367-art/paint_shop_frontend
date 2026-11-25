@@ -5,11 +5,18 @@ import 'responsive_ui.dart';
 import 'api_service.dart';
 import 'product_image_widget.dart';
 import 'slip_downloader.dart';
+import 'app_input_formatters.dart';
 
 class BillingPage extends StatefulWidget {
   final String token;
   final String? apiBaseUrl;
-  const BillingPage({super.key, required this.token, this.apiBaseUrl});
+  final TextEditingController? catalogSearchCtrl;
+  const BillingPage({
+    super.key,
+    required this.token,
+    this.apiBaseUrl,
+    this.catalogSearchCtrl,
+  });
   @override
   State<BillingPage> createState() => _BillingPageState();
 }
@@ -29,7 +36,9 @@ class _BillingPageState extends State<BillingPage> {
   // POS Billing state
   final int _activeTab = 0; // 0 = POS Billing, 1 = Invoices History
   String _catalogSearch = '';
-  final TextEditingController _catalogSearchCtrl = TextEditingController();
+  late final TextEditingController _internalCatalogSearchCtrl;
+  TextEditingController get _catalogSearchCtrl =>
+      widget.catalogSearchCtrl ?? _internalCatalogSearchCtrl;
   final TextEditingController _posCustomerNameCtrl = TextEditingController();
   final TextEditingController _posCustomerPhoneCtrl = TextEditingController();
   final TextEditingController _posCustomerAddressCtrl = TextEditingController();
@@ -75,7 +84,8 @@ class _BillingPageState extends State<BillingPage> {
 
   @override
   void dispose() {
-    _catalogSearchCtrl.dispose();
+    _catalogSearchCtrl.removeListener(_onCatalogSearchChanged);
+    _internalCatalogSearchCtrl.dispose();
     _posCustomerNameCtrl.dispose();
     _posCustomerPhoneCtrl.dispose();
     _posCustomerAddressCtrl.dispose();
@@ -87,8 +97,19 @@ class _BillingPageState extends State<BillingPage> {
   @override
   void initState() {
     super.initState();
+    _internalCatalogSearchCtrl = TextEditingController();
+    _catalogSearchCtrl.addListener(_onCatalogSearchChanged);
+    _catalogSearch = _catalogSearchCtrl.text;
     _api = ApiService(token: widget.token, customBaseUrl: widget.apiBaseUrl);
     _loadBillingData();
+  }
+
+  void _onCatalogSearchChanged() {
+    if (mounted) {
+      setState(() {
+        _catalogSearch = _catalogSearchCtrl.text;
+      });
+    }
   }
 
   Future<void> _loadBillingData() async {
@@ -1789,6 +1810,7 @@ class _BillingPageState extends State<BillingPage> {
                   child: TextField(
                     controller: nameCtrl,
                     textAlignVertical: TextAlignVertical.center,
+                    inputFormatters: const [NoLeadingSpaceFormatter()],
                     onChanged: (val) {
                       final match = _customers.firstWhere(
                         (c) =>
@@ -1900,6 +1922,7 @@ class _BillingPageState extends State<BillingPage> {
                     controller: phoneCtrl,
                     keyboardType: TextInputType.phone,
                     textAlignVertical: TextAlignVertical.center,
+                    inputFormatters: const [PhoneNumberFormatter()],
                     onChanged: (val) {
                       if (val.length >= 7) {
                         final match = _customers.firstWhere(
@@ -1979,6 +2002,7 @@ class _BillingPageState extends State<BillingPage> {
                   child: TextField(
                     controller: addressCtrl,
                     textAlignVertical: TextAlignVertical.center,
+                    inputFormatters: const [NoLeadingSpaceFormatter()],
                     decoration: InputDecoration(
                       hintText: 'Customer Address',
                       hintStyle: const TextStyle(
@@ -2257,29 +2281,34 @@ class _BillingPageState extends State<BillingPage> {
       );
     }
 
+    if (!isDesktop) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildProductCatalogCard(isDesktop: false),
+            const SizedBox(height: 16),
+            _buildCurrentBillCard(isDesktop: false),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: isDesktop
-          ? Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(flex: 13, child: _buildProductCatalogCard()),
-                const SizedBox(width: 16),
-                Expanded(flex: 8, child: _buildCurrentBillCard()),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildProductCatalogCard(),
-                const SizedBox(height: 16),
-                _buildCurrentBillCard(),
-              ],
-            ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(flex: 13, child: _buildProductCatalogCard(isDesktop: true)),
+          const SizedBox(width: 16),
+          Expanded(flex: 8, child: _buildCurrentBillCard(isDesktop: true)),
+        ],
+      ),
     );
   }
 
-  Widget _buildProductCatalogCard() {
+  Widget _buildProductCatalogCard({required bool isDesktop}) {
     final query = _catalogSearch.trim().toLowerCase();
     final filteredProducts = _products.where((p) {
       if (query.isEmpty) return true;
@@ -2310,78 +2339,12 @@ class _BillingPageState extends State<BillingPage> {
       aspectRatio = 2.05;
     }
 
-    final isCompactHeader = screenW < 640;
-
-    return Container(
-      constraints: const BoxConstraints(minHeight: 480),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.025),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (isCompactHeader) ...[
-            const Text(
-              'Product Catalog',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: navy,
-              ),
-            ),
-            const SizedBox(height: 2),
-            const Text(
-              'Select products to add to bill',
-              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
-            ),
-            const SizedBox(height: 12),
-            _buildCatalogSearchField(),
-          ] else
-            Row(
-              children: [
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Product Catalog',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: navy,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Select products to add to bill',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(width: 260, child: _buildCatalogSearchField()),
-              ],
-            ),
-          const SizedBox(height: 16),
-          if (filteredProducts.isEmpty)
-            Container(
+    final contentWidget = filteredProducts.isEmpty
+        ? Center(
+            child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 16),
-              alignment: Alignment.center,
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.inventory_2_outlined,
@@ -2400,11 +2363,15 @@ class _BillingPageState extends State<BillingPage> {
                   ),
                 ],
               ),
-            )
-          else
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+            ),
+          )
+        : Scrollbar(
+            thumbVisibility: isDesktop,
+            child: GridView.builder(
+              shrinkWrap: !isDesktop,
+              physics: isDesktop
+                  ? const AlwaysScrollableScrollPhysics()
+                  : const NeverScrollableScrollPhysics(),
               itemCount: filteredProducts.length,
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: crossAxisCount,
@@ -2415,55 +2382,47 @@ class _BillingPageState extends State<BillingPage> {
               itemBuilder: (_, idx) =>
                   _buildCatalogProductTile(filteredProducts[idx]),
             ),
+          );
+
+    return Container(
+      constraints: BoxConstraints(minHeight: isDesktop ? 0 : 480),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildCatalogSearchField() {
-    return SizedBox(
-      height: 40,
-      child: TextField(
-        controller: _catalogSearchCtrl,
-        onChanged: (val) => setState(() => _catalogSearch = val),
-        textAlignVertical: TextAlignVertical.center,
-        decoration: InputDecoration(
-          hintText: 'Search products by name or ID...',
-          hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
-          prefixIcon: const Icon(
-            Icons.search_rounded,
-            size: 18,
-            color: Color(0xFF64748B),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Product Catalog',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: navy,
+                ),
+              ),
+              SizedBox(height: 2),
+              Text(
+                'Select products to add to bill',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+              ),
+            ],
           ),
-          suffixIcon: _catalogSearch.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.close_rounded, size: 16),
-                  onPressed: () {
-                    _catalogSearchCtrl.clear();
-                    setState(() => _catalogSearch = '');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: const Color(0xFFF8FAFC),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 10,
-            horizontal: 12,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(color: posBlue, width: 1.4),
-          ),
-        ),
+          const SizedBox(height: 16),
+          if (isDesktop) Expanded(child: contentWidget) else contentWidget,
+        ],
       ),
     );
   }
@@ -2624,100 +2583,56 @@ class _BillingPageState extends State<BillingPage> {
     );
   }
 
-  Widget _buildCurrentBillCard() {
+  Widget _buildCurrentBillCard({bool isDesktop = false}) {
     final subtotal = _posSubtotal;
     final gst = _posGst;
     final grandTotal = _posGrandTotal;
 
-    return Container(
-      constraints: const BoxConstraints(minHeight: 480),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.025),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Current Bill',
-                style: TextStyle(
-                  fontSize: 16.5,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF1E293B),
+    final cartListWidget = _cart.isEmpty
+        ? Container(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.shopping_cart_outlined,
+                  size: 24,
+                  color: Color(0xFF94A3B8),
                 ),
-              ),
-              InkWell(
-                onTap: _clearCart,
-                child: const Text(
-                  'Clear All',
-                  style: TextStyle(
-                    fontSize: 12.5,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFEF4444),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // Cart items
-          if (_cart.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(
-                vertical: 12,
-                horizontal: 16,
-              ), // Reduced vertical padding from 22 to 12 (-20px total)
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 36,
-                    color: Color(0xFF94A3B8),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Cart is empty',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF475569),
+                SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Cart is empty',
+                      style: TextStyle(
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF475569),
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Select products to start billing',
-                    style: TextStyle(fontSize: 11.5, color: Color(0xFF94A3B8)),
-                  ),
-                ],
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
+                    Text(
+                      'Select products to start billing',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )
+        : Scrollbar(
+            thumbVisibility: _cart.length > 2,
+            child: ListView.separated(
+              shrinkWrap: !isDesktop,
               itemCount: _cart.length,
               separatorBuilder: (_, _) =>
-                  const Divider(height: 14, color: Color(0xFFE2E8F0)),
+                  const Divider(height: 10, color: Color(0xFFE2E8F0)),
               itemBuilder: (_, i) {
                 final item = _cart[i];
                 final qty = item['quantity'] as double;
@@ -2734,23 +2649,23 @@ class _BillingPageState extends State<BillingPage> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF0F172A),
                             ),
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 1),
                           Text(
                             '${item['sku']} • ₹${price % 1 == 0 ? price.toInt() : price.toStringAsFixed(2)}',
                             style: const TextStyle(
-                              fontSize: 11.5,
+                              fontSize: 11,
                               color: Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -2759,11 +2674,11 @@ class _BillingPageState extends State<BillingPage> {
                           () => _updateCartQty(i, -1),
                         ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 6),
                           child: Text(
                             qty % 1 == 0 ? '${qty.toInt()}' : '$qty',
                             style: const TextStyle(
-                              fontSize: 13,
+                              fontSize: 12.5,
                               fontWeight: FontWeight.w700,
                               color: Color(0xFF0F172A),
                             ),
@@ -2775,14 +2690,14 @@ class _BillingPageState extends State<BillingPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 8),
                     SizedBox(
-                      width: 66,
+                      width: 64,
                       child: Text(
                         '₹${lineTotal % 1 == 0 ? lineTotal.toInt() : lineTotal.toStringAsFixed(2)}',
                         textAlign: TextAlign.right,
                         style: const TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w800,
                           color: navy,
                         ),
@@ -2792,18 +2707,74 @@ class _BillingPageState extends State<BillingPage> {
                 );
               },
             ),
+          );
 
-          const SizedBox(height: 10),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.025),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: isDesktop ? MainAxisSize.max : MainAxisSize.min,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Current Bill',
+                style: TextStyle(
+                  fontSize: 15.5,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+              InkWell(
+                onTap: _clearCart,
+                child: const Text(
+                  'Clear All',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFEF4444),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
 
-          // Customer Details & Creation Section
+          // Cart Section
+          if (isDesktop)
+            Expanded(
+              child: _cart.isEmpty
+                  ? Center(child: cartListWidget)
+                  : cartListWidget,
+            )
+          else
+            cartListWidget,
+
+          const SizedBox(height: 8),
+
+          // Customer Details Box
           if (_posCustomerNameCtrl.text.isEmpty)
             InkWell(
               borderRadius: BorderRadius.circular(8),
               onTap: _showCustomerFormDialog,
               child: Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 7,
+                  horizontal: 10,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -2814,15 +2785,15 @@ class _BillingPageState extends State<BillingPage> {
                   children: [
                     const Icon(
                       Icons.person_add_outlined,
-                      size: 16,
+                      size: 15,
                       color: Color(0xFF64748B),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     const Expanded(
                       child: Text(
                         'Add Customer Details',
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: Color(0xFF64748B),
                         ),
@@ -2830,18 +2801,18 @@ class _BillingPageState extends State<BillingPage> {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
+                        horizontal: 6,
+                        vertical: 2,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(4),
                         border: Border.all(color: const Color(0xFFCBD5E1)),
                       ),
                       child: const Text(
                         '+ Add',
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 10.5,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF334155),
                         ),
@@ -2853,7 +2824,7 @@ class _BillingPageState extends State<BillingPage> {
             )
           else
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 color: const Color(0xFFF8FAFC),
                 borderRadius: BorderRadius.circular(8),
@@ -2861,7 +2832,7 @@ class _BillingPageState extends State<BillingPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.person_rounded, size: 16, color: posBlue),
+                  const Icon(Icons.person_rounded, size: 15, color: posBlue),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -2869,7 +2840,7 @@ class _BillingPageState extends State<BillingPage> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 12,
+                        fontSize: 11.5,
                         fontWeight: FontWeight.w700,
                         color: posBlue,
                       ),
@@ -2878,11 +2849,11 @@ class _BillingPageState extends State<BillingPage> {
                   InkWell(
                     onTap: _showCustomerFormDialog,
                     child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                       child: Text(
                         'Edit',
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 11,
                           color: posBlue,
                           fontWeight: FontWeight.w600,
                         ),
@@ -2900,10 +2871,10 @@ class _BillingPageState extends State<BillingPage> {
                       });
                     },
                     child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 2, vertical: 2),
                       child: Icon(
                         Icons.close_rounded,
-                        size: 16,
+                        size: 15,
                         color: Color(0xFF64748B),
                       ),
                     ),
@@ -2912,331 +2883,226 @@ class _BillingPageState extends State<BillingPage> {
               ),
             ),
 
-          const SizedBox(height: 10),
-
-          // Subtotal & GST
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Subtotal',
-                style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
-              ),
-              Text(
-                _currency(subtotal),
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 5),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'GST (18%)',
-                style: TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
-              ),
-              Text(
-                _currency(gst),
-                style: const TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1E293B),
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 8),
 
-          // Grand Total
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Grand Total',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: Color(0xFF0F172A),
-                ),
-              ),
-              Text(
-                _currency(grandTotal),
-                style: const TextStyle(
-                  fontSize: 16.5,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFFEF4444),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Paid Amount (₹) Field
-          SizedBox(
-            height: 38,
-            child: TextField(
-              controller: _posPaidAmountCtrl,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: const TextStyle(fontSize: 12.5),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Paid Amount (₹)',
-                hintStyle: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF94A3B8),
-                ),
-                filled: true,
-                fillColor: Colors.white,
-                isDense: true,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(
-                    color: Color(0xFFEF4444),
-                    width: 1.2,
-                  ),
-                ),
-              ),
+          // Subtotal, GST & Grand Total Summary Box
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
-          ),
-          const SizedBox(height: 8),
-
-          // LIVE REAL-TIME REMAINING / CHANGE BREAKDOWN
-          Builder(
-            builder: (context) {
-              final rawPaid =
-                  double.tryParse(_posPaidAmountCtrl.text.trim()) ?? 0.0;
-              final hasInput = _posPaidAmountCtrl.text.trim().isNotEmpty;
-              final remainingToPay = (grandTotal - rawPaid).clamp(
-                0.0,
-                double.infinity,
-              );
-              final changeToReturn = (rawPaid - grandTotal).clamp(
-                0.0,
-                double.infinity,
-              );
-
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: changeToReturn > 0
-                      ? const Color(0xFFF0FDF4)
-                      : (remainingToPay > 0 && hasInput
-                            ? const Color(0xFFFEF2F2)
-                            : const Color(0xFFF8FAFC)),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: changeToReturn > 0
-                        ? const Color(0xFF86EFAC)
-                        : (remainingToPay > 0 && hasInput
-                              ? const Color(0xFFFECACA)
-                              : const Color(0xFFE2E8F0)),
-                    width: 1.2,
-                  ),
-                ),
-                child: Column(
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Line 1: Change to Return to Customer
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.currency_exchange_rounded,
-                              size: 14,
-                              color: changeToReturn > 0
-                                  ? const Color(0xFF16A34A)
-                                  : const Color(0xFF64748B),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Change to Return:',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: changeToReturn > 0
-                                    ? const Color(0xFF15803D)
-                                    : const Color(0xFF475569),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          _currency(changeToReturn),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: changeToReturn > 0
-                                ? const Color(0xFF16A34A)
-                                : const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'Subtotal: ${_currency(subtotal)}',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    const Divider(
-                      height: 1,
-                      thickness: 0.8,
-                      color: Color(0xFFE2E8F0),
-                    ),
-                    const SizedBox(height: 6),
-
-                    // Line 2: Remaining Amount Customer Needs to Pay
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              remainingToPay > 0
-                                  ? Icons.pending_actions_rounded
-                                  : Icons.check_circle_rounded,
-                              size: 14,
-                              color: remainingToPay > 0
-                                  ? const Color(0xFFDC2626)
-                                  : const Color(0xFF16A34A),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Remaining to Pay:',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: remainingToPay > 0
-                                    ? const Color(0xFFB91C1C)
-                                    : const Color(0xFF15803D),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          remainingToPay == 0 &&
-                                  (rawPaid >= grandTotal || !hasInput)
-                              ? (hasInput ? '₹0.00 (Fully Paid)' : _currency(0))
-                              : _currency(remainingToPay),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: remainingToPay > 0
-                                ? const Color(0xFFDC2626)
-                                : const Color(0xFF16A34A),
-                          ),
-                        ),
-                      ],
+                    Text(
+                      'GST (18%): ${_currency(gst)}',
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF64748B),
+                      ),
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          const SizedBox(height: 10),
-
-          // Payment Method (Label + Dropdown)
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Payment Method',
-                style: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF475569),
+                const SizedBox(height: 4),
+                const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Grand Total',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF0F172A),
+                      ),
+                    ),
+                    Text(
+                      _currency(grandTotal),
+                      style: const TextStyle(
+                        fontSize: 15.5,
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFFEF4444),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 4),
-              SizedBox(
-                height: 38,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _posPaymentMethod,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          // Paid Amount & Payment Method side-by-side
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Paid Amount (₹)',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF475569),
+                      ),
                     ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                  ),
-                  items: ['Cash', 'UPI', 'Card', 'Bank Transfer', 'Other']
-                      .map(
-                        (m) => DropdownMenuItem(
-                          value: m,
-                          child: Text(
-                            m,
-                            style: const TextStyle(fontSize: 12.5),
+                    const SizedBox(height: 3),
+                    SizedBox(
+                      height: 36,
+                      child: TextField(
+                        controller: _posPaidAmountCtrl,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        inputFormatters: const [NoLeadingSpaceFormatter()],
+                        style: const TextStyle(fontSize: 12),
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          hintText: '0.00',
+                          hintStyle: const TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFEF4444),
+                              width: 1.2,
+                            ),
                           ),
                         ),
-                      )
-                      .toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      setState(() {
-                        _posPaymentMethod = val;
-                        if (val == 'Cash') {
-                          _posPaymentRefCtrl.clear();
-                        }
-                      });
-                    }
-                  },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Payment Method',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    SizedBox(
+                      height: 36,
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _posPaymentMethod,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE2E8F0),
+                            ),
+                          ),
+                        ),
+                        items: ['Cash', 'UPI', 'Card', 'Bank Transfer', 'Other']
+                            .map(
+                              (m) => DropdownMenuItem(
+                                value: m,
+                                child: Text(
+                                  m,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _posPaymentMethod = val;
+                              if (val == 'Cash') {
+                                _posPaymentRefCtrl.clear();
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+
           if (_posPaymentMethod != 'Cash') ...[
             const SizedBox(height: 6),
             SizedBox(
-              height: 36,
+              height: 34,
               child: TextField(
                 controller: _posPaymentRefCtrl,
                 textAlignVertical: TextAlignVertical.center,
+                inputFormatters: const [NoLeadingSpaceFormatter()],
+                style: const TextStyle(fontSize: 11.5),
                 onChanged: (_) => setState(() {}),
                 decoration: InputDecoration(
                   hintText: _paymentRefHint,
                   hintStyle: const TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 11,
                     color: Color(0xFF94A3B8),
                   ),
                   prefixIcon: Icon(
                     _paymentRefIcon,
-                    size: 15,
+                    size: 14,
                     color: const Color(0xFF64748B),
                   ),
                   filled: true,
                   fillColor: Colors.white,
                   isDense: true,
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+                    horizontal: 8,
+                    vertical: 4,
                   ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -3257,17 +3123,134 @@ class _BillingPageState extends State<BillingPage> {
               ),
             ),
           ],
-          const SizedBox(height: 12),
+
+          const SizedBox(height: 8),
+
+          // Change to Return & Remaining to Pay Box
+          Builder(
+            builder: (context) {
+              final rawPaid =
+                  double.tryParse(_posPaidAmountCtrl.text.trim()) ?? 0.0;
+              final hasInput = _posPaidAmountCtrl.text.trim().isNotEmpty;
+              final remainingToPay = (grandTotal - rawPaid).clamp(
+                0.0,
+                double.infinity,
+              );
+              final changeToReturn = (rawPaid - grandTotal).clamp(
+                0.0,
+                double.infinity,
+              );
+
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: changeToReturn > 0
+                      ? const Color(0xFFF0FDF4)
+                      : (remainingToPay > 0 && hasInput
+                            ? const Color(0xFFFEF2F2)
+                            : const Color(0xFFF8FAFC)),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: changeToReturn > 0
+                        ? const Color(0xFF86EFAC)
+                        : (remainingToPay > 0 && hasInput
+                              ? const Color(0xFFFECACA)
+                              : const Color(0xFFE2E8F0)),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Left: Change to return
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.currency_exchange_rounded,
+                          size: 13,
+                          color: changeToReturn > 0
+                              ? const Color(0xFF16A34A)
+                              : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Change: ',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: changeToReturn > 0
+                                ? const Color(0xFF15803D)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                        Text(
+                          _currency(changeToReturn),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: changeToReturn > 0
+                                ? const Color(0xFF16A34A)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Right: Remaining to pay
+                    Row(
+                      children: [
+                        Icon(
+                          remainingToPay > 0
+                              ? Icons.pending_actions_rounded
+                              : Icons.check_circle_rounded,
+                          size: 13,
+                          color: remainingToPay > 0
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF16A34A),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Due: ',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: remainingToPay > 0
+                                ? const Color(0xFFB91C1C)
+                                : const Color(0xFF15803D),
+                          ),
+                        ),
+                        Text(
+                          remainingToPay == 0 &&
+                                  (rawPaid >= grandTotal || !hasInput)
+                              ? (hasInput ? '₹0.00 (Paid)' : _currency(0))
+                              : _currency(remainingToPay),
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: remainingToPay > 0
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF16A34A),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+
+          const SizedBox(height: 8),
 
           // Complete Sale Button
           SizedBox(
-            height: 42,
+            height: 40,
             child: ElevatedButton(
               onPressed: _isSubmittingSale ? null : _completePosSale,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(
-                  0xFFDC2626,
-                ), // Deep rich vibrant red
+                backgroundColor: const Color(0xFFDC2626),
                 foregroundColor: Colors.white,
                 elevation: 1,
                 shadowColor: const Color(0xFFDC2626).withValues(alpha: 0.35),
@@ -3324,6 +3307,13 @@ class _BillingPageState extends State<BillingPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_activeTab == 0) {
+      return Container(
+        color: const Color(0xFFF5F5F5),
+        child: _buildPosBillingView(),
+      );
+    }
+
     return Container(
       color: const Color(0xFFF5F5F5),
       child: SingleChildScrollView(
@@ -3331,711 +3321,704 @@ class _BillingPageState extends State<BillingPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_activeTab == 0) ...[
-              _buildPosBillingView(),
-            ] else ...[
-              // SUMMARY CARDS
-              Padding(
-                padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-                child: ResponsiveSummaryGrid(
-                  spacing: 12,
-                  desktopBreakpoint: 980,
-                  tabletBreakpoint: 480,
-                  children: [
-                    _buildSummaryCard(
-                      'Total Invoices',
-                      '${_summary['totalInvoices'] ?? _invoices.length}',
-                      Icons.receipt_long,
-                      navy,
-                    ),
-                    _buildSummaryCard(
-                      'Total Billed',
-                      _currency(_summary['totalBilled']),
-                      Icons.payments,
-                      purple,
-                    ),
-                    _buildSummaryCard(
-                      'Collected Amount',
-                      _currency(_summary['totalCollected']),
-                      Icons.check_circle_outline,
-                      primaryGreen,
-                    ),
-                    _buildSummaryCard(
-                      'Outstanding Balance',
-                      _currency(_summary['totalOutstanding']),
-                      Icons.hourglass_top,
-                      warningOrange,
-                    ),
-                  ],
-                ),
+            // SUMMARY CARDS
+            Padding(
+              padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+              child: ResponsiveSummaryGrid(
+                spacing: 12,
+                desktopBreakpoint: 980,
+                tabletBreakpoint: 480,
+                children: [
+                  _buildSummaryCard(
+                    'Total Invoices',
+                    '${_summary['totalInvoices'] ?? _invoices.length}',
+                    Icons.receipt_long,
+                    navy,
+                  ),
+                  _buildSummaryCard(
+                    'Total Billed',
+                    _currency(_summary['totalBilled']),
+                    Icons.payments,
+                    purple,
+                  ),
+                  _buildSummaryCard(
+                    'Collected Amount',
+                    _currency(_summary['totalCollected']),
+                    Icons.check_circle_outline,
+                    primaryGreen,
+                  ),
+                  _buildSummaryCard(
+                    'Outstanding Balance',
+                    _currency(_summary['totalOutstanding']),
+                    Icons.hourglass_top,
+                    warningOrange,
+                  ),
+                ],
               ),
+            ),
 
-              // ACTION BAR
+            // ACTION BAR
+            Container(
+              margin: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E6F0)),
+              ),
+              child: Builder(
+                builder: (context) {
+                  final compact = MediaQuery.sizeOf(context).width < 1080;
+                  final searchField = SizedBox(
+                    height: 42,
+                    child: TextField(
+                      textAlignVertical: TextAlignVertical.center,
+                      inputFormatters: const [NoLeadingSpaceFormatter()],
+                      onChanged: (val) {
+                        _searchQuery = val;
+                        _loadBillingData();
+                      },
+                      decoration: InputDecoration(
+                        hintText:
+                            'Search by Invoice #, Customer name or phone...',
+                        hintStyle: const TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF94A3B8),
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          size: 19,
+                          color: Color(0xFF64748B),
+                        ),
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 11,
+                          horizontal: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE2E6F0),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFE2E6F0),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Color(0xFF1E40AF),
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+
+                  final newInvoiceButton = SizedBox(
+                    height: 42,
+                    child: ElevatedButton.icon(
+                      onPressed: _showCreateInvoiceDialog,
+                      icon: const Icon(Icons.add_rounded, size: 18),
+                      label: const Text('New Invoice'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryGreen,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        textStyle: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  );
+
+                  final refreshButton = Tooltip(
+                    message: 'Refresh',
+                    child: SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: Material(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(10),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: _loadBillingData,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFFE2E6F0),
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.refresh_rounded,
+                              size: 20,
+                              color: navy,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+
+                  if (compact) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        searchField,
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _buildStatusFilterTabs(),
+                            newInvoiceButton,
+                            refreshButton,
+                          ],
+                        ),
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    children: [
+                      Expanded(child: searchField),
+                      const SizedBox(width: 12),
+                      _buildStatusFilterTabs(),
+                      const SizedBox(width: 12),
+                      newInvoiceButton,
+                      const SizedBox(width: 10),
+                      refreshButton,
+                    ],
+                  );
+                },
+              ),
+            ),
+
+            // INVOICES TABLE (100% FULL WIDTH - NO HORIZONTAL SCROLL CUTOFF, NO BOTTOM VOID)
+            if (_isLoading)
               Container(
-                margin: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 12,
-                ),
+                height: 240,
+                alignment: Alignment.center,
+                child: const CircularProgressIndicator(),
+              )
+            else if (_errorMessage != null)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: const Color(0xFFE2E6F0)),
                 ),
-                child: Builder(
-                  builder: (context) {
-                    final compact = MediaQuery.sizeOf(context).width < 1080;
-                    final searchField = SizedBox(
-                      height: 42,
-                      child: TextField(
-                        textAlignVertical: TextAlignVertical.center,
-                        onChanged: (val) {
-                          _searchQuery = val;
-                          _loadBillingData();
-                        },
-                        decoration: InputDecoration(
-                          hintText:
-                              'Search by Invoice #, Customer name or phone...',
-                          hintStyle: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF94A3B8),
-                          ),
-                          prefixIcon: const Icon(
-                            Icons.search_rounded,
-                            size: 19,
-                            color: Color(0xFF64748B),
-                          ),
-                          filled: true,
-                          fillColor: const Color(0xFFF8FAFC),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 11,
-                            horizontal: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E6F0),
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                              color: Color(0xFFE2E6F0),
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: const BorderSide(
-                              color: Color(0xFF1E40AF),
-                              width: 1.5,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-
-                    final newInvoiceButton = SizedBox(
-                      height: 42,
-                      child: ElevatedButton.icon(
-                        onPressed: _showCreateInvoiceDialog,
-                        icon: const Icon(Icons.add_rounded, size: 18),
-                        label: const Text('New Invoice'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryGreen,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    );
-
-                    final refreshButton = Tooltip(
-                      message: 'Refresh',
-                      child: SizedBox(
-                        width: 42,
-                        height: 42,
-                        child: Material(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(10),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(10),
-                            onTap: _loadBillingData,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(
-                                  color: const Color(0xFFE2E6F0),
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.refresh_rounded,
-                                size: 20,
-                                color: navy,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-
-                    if (compact) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          searchField,
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              _buildStatusFilterTabs(),
-                              newInvoiceButton,
-                              refreshButton,
-                            ],
-                          ),
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(child: searchField),
-                        const SizedBox(width: 12),
-                        _buildStatusFilterTabs(),
-                        const SizedBox(width: 12),
-                        newInvoiceButton,
-                        const SizedBox(width: 10),
-                        refreshButton,
-                      ],
-                    );
-                  },
-                ),
-              ),
-
-              // INVOICES TABLE (100% FULL WIDTH - NO HORIZONTAL SCROLL CUTOFF, NO BOTTOM VOID)
-              if (_isLoading)
-                Container(
-                  height: 240,
-                  alignment: Alignment.center,
-                  child: const CircularProgressIndicator(),
-                )
-              else if (_errorMessage != null)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E6F0)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.error_outline,
-                        size: 40,
-                        color: Colors.red,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(_errorMessage!),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _loadBillingData,
-                        child: const Text('Try Again'),
-                      ),
-                    ],
-                  ),
-                )
-              else if (_invoices.isEmpty)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.all(36),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFFE2E6F0)),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.receipt_outlined,
-                        size: 48,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'No invoices found',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ElevatedButton(
-                        onPressed: _showCreateInvoiceDialog,
-                        child: const Text('Create First Invoice'),
-                      ),
-                    ],
-                  ),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE2E6F0)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 40,
+                      color: Colors.red,
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Builder(
-                        builder: (context) {
-                          final isNarrow =
-                              MediaQuery.sizeOf(context).width < 1140;
-                          final tableContent = Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // TABLE HEADER
-                              Container(
-                                color: const Color(0xFFF8FAFC),
+                    const SizedBox(height: 8),
+                    Text(_errorMessage!),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _loadBillingData,
+                      child: const Text('Try Again'),
+                    ),
+                  ],
+                ),
+              )
+            else if (_invoices.isEmpty)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(36),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E6F0)),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.receipt_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'No invoices found',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ElevatedButton(
+                      onPressed: _showCreateInvoiceDialog,
+                      child: const Text('Create First Invoice'),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E6F0)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Builder(
+                      builder: (context) {
+                        final isNarrow =
+                            MediaQuery.sizeOf(context).width < 1140;
+                        final tableContent = Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // TABLE HEADER
+                            Container(
+                              color: const Color(0xFFF8FAFC),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 14,
+                              ),
+                              child: const Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      'Invoice No',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Customer',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Date',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Total (₹)',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Paid (₹)',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Balance (₹)',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Method',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 2,
+                                    child: Text(
+                                      'Status',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(
+                                    width: 86,
+                                    child: Text(
+                                      'Action',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF1E293B),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(
+                              height: 1,
+                              thickness: 1,
+                              color: Color(0xFFE5E7EB),
+                            ),
+
+                            // DATA ROWS
+                            ...List.generate(_invoices.length, (idx) {
+                              final inv = _invoices[idx];
+                              final status = (inv['payment_status'] ?? 'Paid')
+                                  .toString();
+                              final isPaid = status == 'Paid';
+                              final isPartial = status == 'Partial';
+                              final bal =
+                                  double.tryParse(
+                                    inv['balance_amount']?.toString() ?? '0',
+                                  ) ??
+                                  0;
+
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: idx == _invoices.length - 1
+                                          ? Colors.transparent
+                                          : const Color(0xFFF1F5F9),
+                                    ),
+                                  ),
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 20,
                                   vertical: 14,
                                 ),
-                                child: const Row(
+                                child: Row(
                                   children: [
+                                    // 1. Invoice No
                                     Expanded(
                                       flex: 3,
-                                      child: Text(
-                                        'Invoice No',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Customer',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Date',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Total (₹)',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Paid (₹)',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Balance (₹)',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Method',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      flex: 2,
-                                      child: Text(
-                                        'Status',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 86,
-                                      child: Text(
-                                        'Action',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF1E293B),
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const Divider(
-                                height: 1,
-                                thickness: 1,
-                                color: Color(0xFFE5E7EB),
-                              ),
-
-                              // DATA ROWS
-                              ...List.generate(_invoices.length, (idx) {
-                                final inv = _invoices[idx];
-                                final status = (inv['payment_status'] ?? 'Paid')
-                                    .toString();
-                                final isPaid = status == 'Paid';
-                                final isPartial = status == 'Partial';
-                                final bal =
-                                    double.tryParse(
-                                      inv['balance_amount']?.toString() ?? '0',
-                                    ) ??
-                                    0;
-
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: idx == _invoices.length - 1
-                                            ? Colors.transparent
-                                            : const Color(0xFFF1F5F9),
-                                      ),
-                                    ),
-                                  ),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 14,
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      // 1. Invoice No
-                                      Expanded(
-                                        flex: 3,
-                                        child: Row(
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.all(6),
-                                              decoration: BoxDecoration(
-                                                color: const Color(0xFFEFF6FF),
-                                                borderRadius:
-                                                    BorderRadius.circular(6),
-                                              ),
-                                              child: const Icon(
-                                                Icons.receipt_outlined,
-                                                size: 14,
-                                                color: Color(0xFF1E40AF),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            Flexible(
-                                              child: Text(
-                                                inv['invoice_no'] ?? '-',
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color: Color(0xFF0F172A),
-                                                  fontSize: 13,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-
-                                      // 2. Customer
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          inv['customer_name'] ?? 'Walk-in',
-                                          style: const TextStyle(
-                                            color: Color(0xFF334155),
-                                            fontSize: 13,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-
-                                      // 3. Date
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          inv['sale_date']
-                                                  ?.toString()
-                                                  .split('T')
-                                                  .first ??
-                                              '-',
-                                          style: const TextStyle(
-                                            color: Color(0xFF64748B),
-                                            fontSize: 12.5,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-
-                                      // 4. Total
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          _currency(inv['total_amount']),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            color: Color(0xFF0F172A),
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ),
-
-                                      // 5. Paid
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          _currency(inv['paid_amount']),
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.w600,
-                                            color: primaryGreen,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ),
-
-                                      // 6. Balance
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          _currency(inv['balance_amount']),
-                                          style: TextStyle(
-                                            fontWeight: bal > 0
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                            color: bal > 0
-                                                ? const Color(0xFFDC2626)
-                                                : const Color(0xFF94A3B8),
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ),
-
-                                      // 7. Method
-                                      Expanded(
-                                        flex: 2,
-                                        child: Text(
-                                          inv['payment_method'] ?? 'Cash',
-                                          style: const TextStyle(
-                                            color: Color(0xFF334155),
-                                            fontSize: 12.5,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-
-                                      // 8. Status
-                                      Expanded(
-                                        flex: 2,
-                                        child: Align(
-                                          alignment: Alignment.centerLeft,
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 10,
-                                              vertical: 4,
-                                            ),
+                                      child: Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(6),
                                             decoration: BoxDecoration(
-                                              color: isPaid
-                                                  ? const Color(0xFFECFDF5)
-                                                  : isPartial
-                                                  ? const Color(0xFFFFFBEB)
-                                                  : const Color(0xFFFEF2F2),
+                                              color: const Color(0xFFEFF6FF),
                                               borderRadius:
                                                   BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: isPaid
-                                                    ? const Color(0xFFA7F3D0)
-                                                    : isPartial
-                                                    ? const Color(0xFFFDE68A)
-                                                    : const Color(0xFFFECACA),
-                                              ),
                                             ),
+                                            child: const Icon(
+                                              Icons.receipt_outlined,
+                                              size: 14,
+                                              color: Color(0xFF1E40AF),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Flexible(
                                             child: Text(
-                                              status,
-                                              style: TextStyle(
-                                                fontSize: 11.5,
-                                                fontWeight: FontWeight.w700,
-                                                color: isPaid
-                                                    ? const Color(0xFF047857)
-                                                    : isPartial
-                                                    ? const Color(0xFFB45309)
-                                                    : const Color(0xFFDC2626),
+                                              inv['invoice_no'] ?? '-',
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFF0F172A),
+                                                fontSize: 13,
                                               ),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // 2. Customer
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        inv['customer_name'] ?? 'Walk-in',
+                                        style: const TextStyle(
+                                          color: Color(0xFF334155),
+                                          fontSize: 13,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+
+                                    // 3. Date
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        inv['sale_date']
+                                                ?.toString()
+                                                .split('T')
+                                                .first ??
+                                            '-',
+                                        style: const TextStyle(
+                                          color: Color(0xFF64748B),
+                                          fontSize: 12.5,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+
+                                    // 4. Total
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        _currency(inv['total_amount']),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Color(0xFF0F172A),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // 5. Paid
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        _currency(inv['paid_amount']),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          color: primaryGreen,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // 6. Balance
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        _currency(inv['balance_amount']),
+                                        style: TextStyle(
+                                          fontWeight: bal > 0
+                                              ? FontWeight.bold
+                                              : FontWeight.normal,
+                                          color: bal > 0
+                                              ? const Color(0xFFDC2626)
+                                              : const Color(0xFF94A3B8),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+
+                                    // 7. Method
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        inv['payment_method'] ?? 'Cash',
+                                        style: const TextStyle(
+                                          color: Color(0xFF334155),
+                                          fontSize: 12.5,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+
+                                    // 8. Status
+                                    Expanded(
+                                      flex: 2,
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: isPaid
+                                                ? const Color(0xFFECFDF5)
+                                                : isPartial
+                                                ? const Color(0xFFFFFBEB)
+                                                : const Color(0xFFFEF2F2),
+                                            borderRadius: BorderRadius.circular(
+                                              6,
+                                            ),
+                                            border: Border.all(
+                                              color: isPaid
+                                                  ? const Color(0xFFA7F3D0)
+                                                  : isPartial
+                                                  ? const Color(0xFFFDE68A)
+                                                  : const Color(0xFFFECACA),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            status,
+                                            style: TextStyle(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: isPaid
+                                                  ? const Color(0xFF047857)
+                                                  : isPartial
+                                                  ? const Color(0xFFB45309)
+                                                  : const Color(0xFFDC2626),
                                             ),
                                           ),
                                         ),
                                       ),
+                                    ),
 
-                                      // 9. Action (ALWAYS 100% VISIBLE)
-                                      SizedBox(
-                                        width: 86,
-                                        child: Center(
-                                          child: Material(
-                                            color: const Color(0xFFEFF6FF),
+                                    // 9. Action (ALWAYS 100% VISIBLE)
+                                    SizedBox(
+                                      width: 86,
+                                      child: Center(
+                                        child: Material(
+                                          color: const Color(0xFFEFF6FF),
+                                          borderRadius: BorderRadius.circular(
+                                            7,
+                                          ),
+                                          child: InkWell(
+                                            onTap: () =>
+                                                _showInvoiceDetails(inv),
                                             borderRadius: BorderRadius.circular(
                                               7,
                                             ),
-                                            child: InkWell(
-                                              onTap: () =>
-                                                  _showInvoiceDetails(inv),
-                                              borderRadius:
-                                                  BorderRadius.circular(7),
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 10,
-                                                      vertical: 6,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(7),
-                                                  border: Border.all(
-                                                    color: const Color(
-                                                      0xFFDBEAFE,
-                                                    ),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 10,
+                                                    vertical: 6,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(7),
+                                                border: Border.all(
+                                                  color: const Color(
+                                                    0xFFDBEAFE,
                                                   ),
                                                 ),
-                                                child: const Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    Icon(
-                                                      Icons.visibility_outlined,
-                                                      size: 14,
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.visibility_outlined,
+                                                    size: 14,
+                                                    color: Color(0xFF1E40AF),
+                                                  ),
+                                                  SizedBox(width: 5),
+                                                  Text(
+                                                    'View',
+                                                    style: TextStyle(
                                                       color: Color(0xFF1E40AF),
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
-                                                    SizedBox(width: 5),
-                                                    Text(
-                                                      'View',
-                                                      style: TextStyle(
-                                                        color: Color(
-                                                          0xFF1E40AF,
-                                                        ),
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                );
-                              }),
-
-                              // TABLE FOOTER
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 20,
-                                  vertical: 12,
-                                ),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF8FAFC),
-                                  border: Border(
-                                    top: BorderSide(color: Color(0xFFE5E7EB)),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Showing ${_invoices.length} invoices',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFF64748B),
-                                      ),
-                                    ),
-                                    Text(
-                                      'Total Billed: ${_currency(_summary['totalBilled'])}',
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF0F172A),
-                                      ),
                                     ),
                                   ],
                                 ),
-                              ),
-                            ],
-                          );
+                              );
+                            }),
 
-                          if (isNarrow) {
-                            return SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: SizedBox(width: 920, child: tableContent),
-                            );
-                          }
-                          return tableContent;
-                        },
-                      ),
+                            // TABLE FOOTER
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFFF8FAFC),
+                                border: Border(
+                                  top: BorderSide(color: Color(0xFFE5E7EB)),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Showing ${_invoices.length} invoices',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Total Billed: ${_currency(_summary['totalBilled'])}',
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+
+                        if (isNarrow) {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: SizedBox(width: 920, child: tableContent),
+                          );
+                        }
+                        return tableContent;
+                      },
                     ),
                   ),
                 ),
-            ],
+              ),
           ],
         ),
       ),
